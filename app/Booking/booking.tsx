@@ -1,4 +1,5 @@
 import { auth, db } from "@/firebaseConfig";
+import BackButton from "@/components/BackButton";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { onValue, push, ref, set } from "firebase/database";
@@ -69,68 +70,71 @@ export default function BookingScreen() {
   const allFilled = patientName && phone && age && reason && (email.trim() || auth.currentUser?.email);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Doctor Card */}
-      {doctor && (
-        <View style={styles.doctorCard}>
-          <View style={styles.docHeader}>
-            <MaterialIcons name="medical-services" size={28} color="#1a237e" />
-            <Text style={styles.docName}>Dr. {doctor.name}</Text>
+    <View style={{ flex: 1, backgroundColor: '#f8f9fa' }}>
+      <BackButton title="Book Appointment" />
+      <ScrollView contentContainerStyle={styles.container}>
+        {/* Doctor Card */}
+        {doctor && (
+          <View style={styles.doctorCard}>
+            <View style={styles.docHeader}>
+              <MaterialIcons name="medical-services" size={28} color="#1a237e" />
+              <Text style={styles.docName}>Dr. {doctor.name}</Text>
+            </View>
+            <Text style={styles.docInfo}>🏥 {doctor.hospital}</Text>
+            <Text style={styles.docInfo}>🩺 {doctor.department}</Text>
           </View>
-          <Text style={styles.docInfo}>🏥 {doctor.hospital}</Text>
-          <Text style={styles.docInfo}>🩺 {doctor.department}</Text>
-        </View>
-      )}
+        )}
 
-      {/* Input Fields */}
-      <TextInput
-        placeholder="Patient Name"
-        style={styles.input}
-        value={patientName}
-        onChangeText={setPatientName}
-      />
-      <TextInput
-        placeholder="Patient Email"
-        style={styles.input}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <TextInput
-        placeholder="Phone Number"
-        style={styles.input}
-        keyboardType="numeric"
-        value={phone}
-        onChangeText={(val) => handleNumericInput(val, setPhone)}
-      />
-      <TextInput
-        placeholder="Age"
-        style={styles.input}
-        keyboardType="numeric"
-        value={age}
-        onChangeText={(val) => handleNumericInput(val, setAge)}
-      />
-      <TextInput
-        placeholder="Reason / Illness"
-        style={[styles.input, { height: 100 }]}
-        multiline
-        value={reason}
-        onChangeText={setReason}
-      />
+        {/* Input Fields */}
+        <TextInput
+          placeholder="Patient Name"
+          style={styles.input}
+          value={patientName}
+          onChangeText={setPatientName}
+        />
+        <TextInput
+          placeholder="Patient Email"
+          style={styles.input}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <TextInput
+          placeholder="Phone Number"
+          style={styles.input}
+          keyboardType="numeric"
+          value={phone}
+          onChangeText={(val) => handleNumericInput(val, setPhone)}
+        />
+        <TextInput
+          placeholder="Age"
+          style={styles.input}
+          keyboardType="numeric"
+          value={age}
+          onChangeText={(val) => handleNumericInput(val, setAge)}
+        />
+        <TextInput
+          placeholder="Reason / Illness"
+          style={[styles.input, { height: 100 }]}
+          multiline
+          value={reason}
+          onChangeText={setReason}
+        />
 
-      {/* Submit Button */}
-      <TouchableOpacity
-        style={[
-          styles.button,
-          { backgroundColor: allFilled ? "#1e88e5" : "#aaa" },
-        ]}
-        disabled={!allFilled}
-        onPress={handleSubmit}
-      >
-        <Text style={styles.btnText}>Submit Booking</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        {/* Submit Button */}
+        <TouchableOpacity
+          style={[
+            styles.button,
+            { backgroundColor: allFilled ? "#1e88e5" : "#aaa" },
+          ]}
+          disabled={!allFilled}
+          onPress={handleSubmit}
+        >
+          <Text style={styles.btnText}>Submit Booking</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
   );
 }
 

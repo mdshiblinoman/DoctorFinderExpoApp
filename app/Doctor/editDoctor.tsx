@@ -162,29 +162,31 @@ export default function DoctorEdit() {
   ];
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 140 }}>
-      <Text style={styles.header}>Edit Doctor Profile</Text>
+    <View style={{ flex: 1 }}>
+      <BackButton title="Edit Doctor Profile" />
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 140 }}>
 
-      {Object.keys(form).map((key) => (
-        <View key={key} style={styles.inputGroup}>
-          <Text style={styles.label}>{fieldLabels[key]}</Text>
-          <TextInput
-            style={[
-              styles.input,
-              readOnlyFields.includes(key) && styles.readOnly,
-            ]}
-            value={form[key]}
-            onChangeText={(val) => handleChange(key, val)}
-            placeholder={`Enter ${fieldLabels[key]}`}
-            editable={!readOnlyFields.includes(key)}
-          />
-        </View>
-      ))}
+        {Object.keys(form).map((key) => (
+          <View key={key} style={styles.inputGroup}>
+            <Text style={styles.label}>{fieldLabels[key]}</Text>
+            <TextInput
+              style={[
+                styles.input,
+                readOnlyFields.includes(key) && styles.readOnly,
+              ]}
+              value={form[key]}
+              onChangeText={(val) => handleChange(key, val)}
+              placeholder={`Enter ${fieldLabels[key]}`}
+              editable={!readOnlyFields.includes(key)}
+            />
+          </View>
+        ))}
 
-      <TouchableOpacity style={styles.updateBtn} onPress={handleUpdate}>
-        <Text style={styles.updateText}>Update</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity style={styles.updateBtn} onPress={handleUpdate}>
+          <Text style={styles.updateText}>Update</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
   );
 }
 
