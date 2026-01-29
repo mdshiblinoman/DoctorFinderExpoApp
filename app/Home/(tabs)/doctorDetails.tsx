@@ -1,4 +1,5 @@
 import { db } from "@/firebaseConfig";
+import BackButton from "@/components/BackButton";
 import { useLocalSearchParams } from "expo-router";
 import { get, ref } from "firebase/database";
 import { useEffect, useState } from "react";
@@ -68,28 +69,31 @@ export default function DoctorDetails() {
   ];
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Doctor Avatar */}
-      <View style={styles.avatarContainer}>
-        <Image
-          source={{ uri: doctor.photoURL || "https://cdn-icons-png.flaticon.com/512/1077/1077114.png" }}
-          style={styles.avatar}
-        />
-        <Text style={styles.title}>{doctor.name}</Text>
-        <Text style={styles.subtitle}>{doctor.degree} | {doctor.department}</Text>
-        <Text style={styles.subtitle}>{doctor.hospital}</Text>
-      </View>
+    <View style={{ flex: 1 }}>
+      <BackButton title="Doctor Details" />
+      <ScrollView style={styles.container}>
+        {/* Doctor Avatar */}
+        <View style={styles.avatarContainer}>
+          <Image
+            source={{ uri: doctor.photoURL || "https://cdn-icons-png.flaticon.com/512/1077/1077114.png" }}
+            style={styles.avatar}
+          />
+          <Text style={styles.title}>{doctor.name}</Text>
+          <Text style={styles.subtitle}>{doctor.degree} | {doctor.department}</Text>
+          <Text style={styles.subtitle}>{doctor.hospital}</Text>
+        </View>
 
-      {/* Doctor Info */}
-      <View style={styles.infoContainer}>
-        {infoFields.map((field, index) => (
-          <View key={index} style={styles.card}>
-            <Text style={styles.cardLabel}>{field.emoji} {field.label}</Text>
-            <Text style={styles.cardValue}>{field.value}</Text>
-          </View>
-        ))}
-      </View>
-    </ScrollView>
+        {/* Doctor Info */}
+        <View style={styles.infoContainer}>
+          {infoFields.map((field, index) => (
+            <View key={index} style={styles.card}>
+              <Text style={styles.cardLabel}>{field.emoji} {field.label}</Text>
+              <Text style={styles.cardValue}>{field.value}</Text>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 

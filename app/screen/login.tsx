@@ -1,8 +1,9 @@
 import { auth } from "@/firebaseConfig";
+import BackButton from "@/components/BackButton";
 import { useRouter } from 'expo-router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -31,31 +32,34 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+      <BackButton title="Login" />
+      <View style={styles.content}>
+        <Text style={styles.title}>Login</Text>
 
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        style={styles.input}
-        autoCapitalize="none"
-      />
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-      />
+        <TextInput
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          style={styles.input}
+          autoCapitalize="none"
+        />
+        <TextInput
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          style={styles.input}
+        />
 
-      <TouchableOpacity onPress={handleLogin} style={styles.button}>
-        <Text style={styles.buttonText}>Log In</Text>
-      </TouchableOpacity>
+        <TouchableOpacity onPress={handleLogin} style={styles.button}>
+          <Text style={styles.buttonText}>Log In</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push('/screen/signup')}>
-        <Text style={styles.link}>Don't have an account? Sign up</Text>
-      </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/screen/signup')}>
+          <Text style={styles.link}>Don't have an account? Sign up</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -64,6 +68,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  content: {
+    flex: 1,
     padding: 30,
     justifyContent: 'center',
   },

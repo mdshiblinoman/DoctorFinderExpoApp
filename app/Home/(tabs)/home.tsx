@@ -1,5 +1,6 @@
 import { theme } from "@/constants/theme";
 import { db } from "@/firebaseConfig";
+import BackButton from "@/components/BackButton";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { onValue, ref } from "firebase/database";
@@ -70,11 +71,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.headerSection}>
-        <Text style={styles.headerText}>Available Doctors</Text>
-      </View>
-
+      <BackButton title="Available Doctors" />
       {/* Search */}
       <View style={styles.searchContainer}>
         <TextInput

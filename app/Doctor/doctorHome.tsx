@@ -1,4 +1,5 @@
 import { auth, db } from "@/firebaseConfig";
+import BackButton from "@/components/BackButton";
 import { router } from "expo-router";
 import { onValue, ref, remove } from "firebase/database";
 import { useEffect, useState } from "react";
@@ -60,8 +61,8 @@ export default function DoctorHome() {
 
   return (
     <View style={styles.container}>
+      <BackButton title="My Profile" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.header}>My Profile</Text>
 
         {loading ? (
           <View style={styles.center}>

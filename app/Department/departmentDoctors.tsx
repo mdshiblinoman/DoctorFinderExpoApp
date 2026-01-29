@@ -1,5 +1,6 @@
 // app/Department/departmentDoctors.tsx
 import { db } from "@/firebaseConfig";
+import BackButton from "@/components/BackButton";
 import { router, useLocalSearchParams } from "expo-router";
 import { onValue, ref } from "firebase/database";
 import { useEffect, useState } from "react";
@@ -16,7 +17,7 @@ import {
 import Icon from "react-native-vector-icons/Ionicons";
 
 export default function DepartmentDoctors() {
-  const { department } = useLocalSearchParams(); 
+  const { department } = useLocalSearchParams();
   const [doctors, setDoctors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -58,7 +59,7 @@ export default function DepartmentDoctors() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Doctors in {department}</Text>
+      <BackButton title={`Doctors in ${department}`} />
 
       {doctors.length === 0 ? (
         <Text style={styles.noData}>No doctors found in this department</Text>
@@ -66,7 +67,7 @@ export default function DepartmentDoctors() {
         <FlatList
           data={doctors}
           numColumns={numColumns}
-          key={numColumns} 
+          key={numColumns}
           columnWrapperStyle={
             numColumns > 1 ? { justifyContent: "space-between" } : undefined
           }

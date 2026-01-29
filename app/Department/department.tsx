@@ -1,4 +1,5 @@
 import { db } from "@/firebaseConfig";
+import BackButton from "@/components/BackButton";
 import { router } from "expo-router";
 import { onValue, ref } from "firebase/database";
 import { useEffect, useState } from "react";
@@ -66,7 +67,7 @@ export default function DepartmentScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Departments</Text>
+      <BackButton title="Departments" />
 
       {/* --- Search Bar --- */}
       <TextInput

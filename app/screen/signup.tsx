@@ -1,4 +1,5 @@
 import { auth, db } from "@/firebaseConfig";
+import BackButton from "@/components/BackButton";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
@@ -143,10 +144,11 @@ export default function SignupScreen() {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={{ flex: 1, backgroundColor: '#f8f9fa' }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
+        <BackButton title="Sign Up" />
         <ScrollView
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"

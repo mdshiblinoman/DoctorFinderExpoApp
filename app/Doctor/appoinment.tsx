@@ -1,15 +1,16 @@
 import { db } from "@/firebaseConfig";
+import BackButton from "@/components/BackButton";
 import { useLocalSearchParams } from "expo-router";
 import { get, onValue, ref, update } from "firebase/database";
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function AppointmentDetails() {
@@ -105,7 +106,7 @@ export default function AppointmentDetails() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Appointment Confirmed ✅</Text>
+      <BackButton title="Appointment Details" />
 
       <Text style={styles.label}>Patient Name:</Text>
       <Text style={styles.value}>{booking.patientName}</Text>

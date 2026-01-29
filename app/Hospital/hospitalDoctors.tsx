@@ -1,5 +1,6 @@
 // app/hospitalDoctors.tsx
 import { db } from "@/firebaseConfig";
+import BackButton from "@/components/BackButton";
 import { router, useLocalSearchParams } from "expo-router";
 import { onValue, ref } from "firebase/database";
 import { useEffect, useState } from "react";
@@ -59,7 +60,7 @@ export default function HospitalDoctors() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Doctors at {hospital}</Text>
+      <BackButton title={`Doctors at ${hospital}`} />
 
       {doctors.length === 0 ? (
         <Text style={styles.noData}>No doctors found in this hospital</Text>

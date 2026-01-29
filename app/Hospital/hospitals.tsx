@@ -1,5 +1,6 @@
 // app/hospital.tsx
 import { db } from "@/firebaseConfig";
+import BackButton from "@/components/BackButton";
 import { router } from "expo-router";
 import { onValue, ref } from "firebase/database";
 import { useEffect, useState } from "react";
@@ -69,8 +70,7 @@ export default function HospitalScreen() {
 
   return (
     <View style={styles.container}>
-      {/* --- Header --- */}
-      <Text style={styles.header}>Hospitals</Text>
+      <BackButton title="Hospitals" />
 
       {/* --- Search Bar under heading --- */}
       <TextInput

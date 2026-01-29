@@ -1,5 +1,6 @@
 // app/doctorEdit.tsx
 import { db } from "@/firebaseConfig";
+import BackButton from "@/components/BackButton";
 import { router, useLocalSearchParams } from "expo-router";
 import { onValue, ref, update } from "firebase/database";
 import { useEffect, useState } from "react";
