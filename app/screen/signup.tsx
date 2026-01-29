@@ -10,6 +10,7 @@ import {
   Alert,
   Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -18,7 +19,9 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  ActivityIndicator,
 } from "react-native";
+import { sendVerificationEmail } from "@/services/emailService";
 
 // Validation error interface
 interface ValidationErrors {
@@ -61,6 +64,19 @@ export default function SignupScreen() {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
+
+  // Password visibility states
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Email verification states
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [generatedOtp, setGeneratedOtp] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpError, setOtpError] = useState("");
+  const [resendTimer, setResendTimer] = useState(0);
 
   // ✅ Calculate password strength
   const calculatePasswordStrength = (pwd: string): number => {
@@ -250,7 +266,7 @@ export default function SignupScreen() {
   // ✅ Check if form is valid
   const isFormValid = () => {
     const requiredFields = [name, phone, email, password, confirmPassword, department, hospital, degree, registrationNumber, place, dob, appointmentTime];
-    return requiredFields.every(f => f.trim() !== "") && password === confirmPassword && password.length >= 6;
+    return requiredFields.every(f => f.trim() !== "") && password === confirmPassword && password.length >= 6 && isEmailVerified;
   };
 
   // ✅ Get password strength label and color
@@ -260,6 +276,89 @@ export default function SignupScreen() {
     if (passwordStrength <= 3) return { label: "Good", color: "#ffc107" };
     if (passwordStrength <= 4) return { label: "Strong", color: "#28a745" };
     return { label: "Very Strong", color: "#20c997" };
+  };
+
+  // ✅ Generate 6-digit OTP
+  const generateOtp = (): string => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
+  // ✅ Resend timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
+
+  // ✅ Send verification email with OTP
+  const handleSendVerificationCode = async () => {
+    if (!email) {
+      Alert.alert("Email Required", "Please enter your email address first.");
+      return;
+    }
+
+    const emailError = validateField("email", email);
+    if (emailError) {
+      Alert.alert("Invalid Email", emailError);
+      return;
+    }
+
+    try {
+      setOtpLoading(true);
+      setOtpError("");
+
+      const otp = generateOtp();
+      setGeneratedOtp(otp);
+
+      const result = await sendVerificationEmail({
+        email: email,
+        otp: otp,
+        name: name || "User",
+      });
+
+      if (result.success) {
+        setShowOtpModal(true);
+        setResendTimer(60); // 60 seconds cooldown
+        Alert.alert(
+          "Verification Code Sent",
+          `A 6-digit verification code has been sent to ${email}. Please check your inbox and spam folder.`
+        );
+      } else {
+        Alert.alert("Error", result.error || "Failed to send verification email. Please try again.");
+      }
+    } catch (error: any) {
+      Alert.alert("Error", "Failed to send verification email. Please try again.");
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  // ✅ Verify OTP code
+  const handleVerifyOtp = () => {
+    if (otpCode.length !== 6) {
+      setOtpError("Please enter a 6-digit code");
+      return;
+    }
+
+    if (otpCode === generatedOtp) {
+      setIsEmailVerified(true);
+      setShowOtpModal(false);
+      setOtpCode("");
+      setOtpError("");
+      Alert.alert("Success", "Email verified successfully!");
+    } else {
+      setOtpError("Invalid verification code. Please try again.");
+    }
+  };
+
+  // ✅ Resend OTP
+  const handleResendOtp = async () => {
+    if (resendTimer > 0) return;
+    await handleSendVerificationCode();
   };
 
   // ✅ Signup function
@@ -371,18 +470,40 @@ export default function SignupScreen() {
               <TextInput
                 placeholder="Email Address *"
                 value={email}
-                onChangeText={(v) => handleChange("email", v, setEmail)}
+                onChangeText={(v) => {
+                  handleChange("email", v, setEmail);
+                  if (isEmailVerified) setIsEmailVerified(false); // Reset verification if email changes
+                }}
                 onBlur={() => handleBlur("email", email)}
                 style={styles.input}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 placeholderTextColor="#999"
+                editable={!isEmailVerified}
               />
-              {touched.email && !errors.email && email && (
-                <Ionicons name="checkmark-circle" size={20} color="#28a745" />
+              {isEmailVerified ? (
+                <View style={styles.verifiedBadge}>
+                  <Ionicons name="checkmark-circle" size={20} color="#28a745" />
+                  <Text style={styles.verifiedText}>Verified</Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  onPress={handleSendVerificationCode}
+                  style={styles.verifyButton}
+                  disabled={otpLoading || !email}
+                >
+                  {otpLoading ? (
+                    <ActivityIndicator size="small" color="#007AFF" />
+                  ) : (
+                    <Text style={[styles.verifyButtonText, !email && styles.verifyButtonDisabled]}>Verify</Text>
+                  )}
+                </TouchableOpacity>
               )}
             </View>
             {touched.email && errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+            {!isEmailVerified && email && !errors.email && (
+              <Text style={styles.verifyHintText}>Please verify your email to continue</Text>
+            )}
 
             {/* Date of Birth Picker */}
             <TouchableOpacity
@@ -422,9 +543,12 @@ export default function SignupScreen() {
                 onChangeText={(v) => handleChange("password", v, setPassword)}
                 onBlur={() => handleBlur("password", password)}
                 style={styles.input}
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 placeholderTextColor="#999"
               />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+                <Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color="#666" />
+              </TouchableOpacity>
               {touched.password && !errors.password && password && (
                 <Ionicons name="checkmark-circle" size={20} color="#28a745" />
               )}
@@ -461,15 +585,75 @@ export default function SignupScreen() {
                 onChangeText={(v) => handleChange("confirmPassword", v, setConfirmPassword)}
                 onBlur={() => handleBlur("confirmPassword", confirmPassword)}
                 style={styles.input}
-                secureTextEntry
+                secureTextEntry={!showConfirmPassword}
                 placeholderTextColor="#999"
               />
+              <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeIcon}>
+                <Ionicons name={showConfirmPassword ? "eye-outline" : "eye-off-outline"} size={20} color="#666" />
+              </TouchableOpacity>
               {touched.confirmPassword && !errors.confirmPassword && confirmPassword && (
                 <Ionicons name="checkmark-circle" size={20} color="#28a745" />
               )}
             </View>
             {touched.confirmPassword && errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
           </View>
+
+          {/* OTP Verification Modal */}
+          <Modal
+            visible={showOtpModal}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setShowOtpModal(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <TouchableOpacity
+                  style={styles.modalCloseButton}
+                  onPress={() => setShowOtpModal(false)}
+                >
+                  <Ionicons name="close" size={24} color="#666" />
+                </TouchableOpacity>
+
+                <Ionicons name="mail-open-outline" size={60} color="#007AFF" style={styles.modalIcon} />
+                <Text style={styles.modalTitle}>Verify Your Email</Text>
+                <Text style={styles.modalSubtitle}>Enter the 6-digit code sent to</Text>
+                <Text style={styles.modalEmail}>{email}</Text>
+
+                <View style={styles.otpInputContainer}>
+                  <TextInput
+                    style={styles.otpInput}
+                    value={otpCode}
+                    onChangeText={(v) => {
+                      setOtpCode(v.replace(/[^0-9]/g, ""));
+                      setOtpError("");
+                    }}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    placeholder="000000"
+                    placeholderTextColor="#ccc"
+                  />
+                </View>
+                {otpError ? <Text style={styles.otpErrorText}>{otpError}</Text> : null}
+
+                <TouchableOpacity
+                  style={styles.verifyOtpButton}
+                  onPress={handleVerifyOtp}
+                >
+                  <Text style={styles.verifyOtpButtonText}>Verify Code</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.resendButton}
+                  onPress={handleResendOtp}
+                  disabled={resendTimer > 0}
+                >
+                  <Text style={[styles.resendButtonText, resendTimer > 0 && styles.resendButtonDisabled]}>
+                    {resendTimer > 0 ? `Resend code in ${resendTimer}s` : "Resend Code"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
 
           {/* Professional Information Section */}
           <View style={styles.section}>
@@ -757,5 +941,127 @@ const styles = StyleSheet.create({
   loginLinkBold: {
     color: "#007AFF",
     fontWeight: "600",
+  },
+  eyeIcon: {
+    padding: 8,
+    marginRight: 4,
+  },
+  verifyButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    backgroundColor: "#e8f4ff",
+  },
+  verifyButtonText: {
+    color: "#007AFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  verifyButtonDisabled: {
+    color: "#999",
+  },
+  verifiedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+  },
+  verifiedText: {
+    color: "#28a745",
+    fontSize: 12,
+    fontWeight: "600",
+    marginLeft: 4,
+  },
+  verifyHintText: {
+    color: "#fd7e14",
+    fontSize: 12,
+    marginLeft: 4,
+    marginBottom: 12,
+    marginTop: 2,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 30,
+    width: "100%",
+    maxWidth: 350,
+    alignItems: "center",
+  },
+  modalCloseButton: {
+    position: "absolute",
+    top: 15,
+    right: 15,
+    padding: 5,
+  },
+  modalIcon: {
+    marginBottom: 15,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: "#666",
+  },
+  modalEmail: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#007AFF",
+    marginBottom: 20,
+  },
+  otpInputContainer: {
+    width: "100%",
+    marginBottom: 10,
+  },
+  otpInput: {
+    borderWidth: 2,
+    borderColor: "#007AFF",
+    borderRadius: 12,
+    padding: 15,
+    fontSize: 24,
+    textAlign: "center",
+    letterSpacing: 10,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  otpErrorText: {
+    color: "#dc3545",
+    fontSize: 13,
+    marginBottom: 10,
+  },
+  verifyOtpButton: {
+    backgroundColor: "#007AFF",
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    marginTop: 10,
+    width: "100%",
+  },
+  verifyOtpButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  resendButton: {
+    marginTop: 15,
+    padding: 10,
+  },
+  resendButtonText: {
+    color: "#007AFF",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  resendButtonDisabled: {
+    color: "#999",
   },
 });
