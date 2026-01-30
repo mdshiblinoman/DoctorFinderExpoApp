@@ -10,7 +10,6 @@ import {
   Alert,
   Keyboard,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -21,7 +20,6 @@ import {
   View,
   ActivityIndicator,
 } from "react-native";
-import { sendOTPviaSMS } from "@/services/emailService";
 
 // Validation error interface
 interface ValidationErrors {
@@ -68,15 +66,6 @@ export default function SignupScreen() {
   // Password visibility states
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  // Email verification states
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
-  const [showOtpModal, setShowOtpModal] = useState(false);
-  const [otpCode, setOtpCode] = useState("");
-  const [generatedOtp, setGeneratedOtp] = useState("");
-  const [otpLoading, setOtpLoading] = useState(false);
-  const [otpError, setOtpError] = useState("");
-  const [resendTimer, setResendTimer] = useState(0);
 
   // ✅ Calculate password strength
   const calculatePasswordStrength = (pwd: string): number => {
@@ -266,7 +255,7 @@ export default function SignupScreen() {
   // ✅ Check if form is valid
   const isFormValid = () => {
     const requiredFields = [name, phone, email, password, confirmPassword, department, hospital, degree, registrationNumber, place, dob, appointmentTime];
-    return requiredFields.every(f => f.trim() !== "") && password === confirmPassword && password.length >= 6 && isPhoneVerified;
+    return requiredFields.every(f => f.trim() !== "") && password === confirmPassword && password.length >= 6;
   };
 
   // ✅ Get password strength label and color
@@ -276,88 +265,6 @@ export default function SignupScreen() {
     if (passwordStrength <= 3) return { label: "Good", color: "#ffc107" };
     if (passwordStrength <= 4) return { label: "Strong", color: "#28a745" };
     return { label: "Very Strong", color: "#20c997" };
-  };
-
-  // ✅ Generate 6-digit OTP
-  const generateOtp = (): string => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-  };
-
-  // ✅ Resend timer effect
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (resendTimer > 0) {
-      interval = setInterval(() => {
-        setResendTimer((prev) => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [resendTimer]);
-
-  // ✅ Send verification SMS with OTP
-  const handleSendVerificationCode = async () => {
-    if (!phone) {
-      Alert.alert("Phone Required", "Please enter your phone number first.");
-      return;
-    }
-
-    const phoneError = validateField("phone", phone);
-    if (phoneError) {
-      Alert.alert("Invalid Phone", phoneError);
-      return;
-    }
-
-    try {
-      setOtpLoading(true);
-      setOtpError("");
-
-      const otp = generateOtp();
-      setGeneratedOtp(otp);
-
-      // Format phone with Bangladesh country code (+880)
-      const formattedPhone = phone.startsWith("0") ? `+88${phone}` : `+880${phone}`;
-
-      const result = await sendOTPviaSMS(formattedPhone, otp, name || "User");
-
-      if (result.success) {
-        setShowOtpModal(true);
-        setResendTimer(60); // 60 seconds cooldown
-        Alert.alert(
-          "Verification Code Sent",
-          `A 6-digit verification code has been sent to ${phone} via SMS.`
-        );
-      } else {
-        Alert.alert("Error", result.error || "Failed to send SMS. Please try again.");
-      }
-    } catch (error: any) {
-      Alert.alert("Error", "Failed to send SMS. Please try again.");
-    } finally {
-      setOtpLoading(false);
-    }
-  };
-
-  // ✅ Verify OTP code
-  const handleVerifyOtp = () => {
-    if (otpCode.length !== 6) {
-      setOtpError("Please enter a 6-digit code");
-      return;
-    }
-
-    if (otpCode === generatedOtp) {
-      setIsPhoneVerified(true);
-      setShowOtpModal(false);
-      setOtpCode("");
-      setOtpError("");
-      Alert.alert("Success", "Email verified successfully!");
-    } else {
-      setOtpError("Invalid verification code. Please try again.");
-    }
-  };
-
-  // ✅ Resend OTP
-  const handleResendOtp = async () => {
-    if (resendTimer > 0) return;
-    await handleSendVerificationCode();
   };
 
   // ✅ Signup function
@@ -451,40 +358,18 @@ export default function SignupScreen() {
               <TextInput
                 placeholder="Phone Number (11 digits) *"
                 value={phone}
-                onChangeText={(v) => {
-                  handleChange("phone", v.replace(/[^0-9]/g, ""), setPhone);
-                  if (isPhoneVerified) setIsPhoneVerified(false); // Reset verification if phone changes
-                }}
+                onChangeText={(v) => handleChange("phone", v.replace(/[^0-9]/g, ""), setPhone)}
                 onBlur={() => handleBlur("phone", phone)}
                 style={styles.input}
                 keyboardType="phone-pad"
                 maxLength={11}
                 placeholderTextColor="#999"
-                editable={!isPhoneVerified}
               />
-              {isPhoneVerified ? (
-                <View style={styles.verifiedBadge}>
-                  <Ionicons name="checkmark-circle" size={20} color="#28a745" />
-                  <Text style={styles.verifiedText}>Verified</Text>
-                </View>
-              ) : (
-                <TouchableOpacity
-                  onPress={handleSendVerificationCode}
-                  style={styles.verifyButton}
-                  disabled={otpLoading || !phone || phone.length !== 11}
-                >
-                  {otpLoading ? (
-                    <ActivityIndicator size="small" color="#007AFF" />
-                  ) : (
-                    <Text style={[styles.verifyButtonText, (!phone || phone.length !== 11) && styles.verifyButtonDisabled]}>Verify</Text>
-                  )}
-                </TouchableOpacity>
+              {touched.phone && !errors.phone && phone && (
+                <Ionicons name="checkmark-circle" size={20} color="#28a745" />
               )}
             </View>
             {touched.phone && errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
-            {!isPhoneVerified && phone && phone.length === 11 && !errors.phone && (
-              <Text style={styles.verifyHintText}>Please verify your phone number to continue</Text>
-            )}
 
             <View style={[styles.inputContainer, touched.email && errors.email && styles.inputError]}>
               <Ionicons name="mail-outline" size={20} color={touched.email && errors.email ? "#dc3545" : "#666"} style={styles.icon} />
@@ -596,63 +481,6 @@ export default function SignupScreen() {
             </View>
             {touched.confirmPassword && errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
           </View>
-
-          {/* OTP Verification Modal */}
-          <Modal
-            visible={showOtpModal}
-            transparent={true}
-            animationType="slide"
-            onRequestClose={() => setShowOtpModal(false)}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
-                <TouchableOpacity
-                  style={styles.modalCloseButton}
-                  onPress={() => setShowOtpModal(false)}
-                >
-                  <Ionicons name="close" size={24} color="#666" />
-                </TouchableOpacity>
-
-                <Ionicons name="mail-open-outline" size={60} color="#007AFF" style={styles.modalIcon} />
-                <Text style={styles.modalTitle}>Verify Your Email</Text>
-                <Text style={styles.modalSubtitle}>Enter the 6-digit code sent to</Text>
-                <Text style={styles.modalEmail}>{email}</Text>
-
-                <View style={styles.otpInputContainer}>
-                  <TextInput
-                    style={styles.otpInput}
-                    value={otpCode}
-                    onChangeText={(v) => {
-                      setOtpCode(v.replace(/[^0-9]/g, ""));
-                      setOtpError("");
-                    }}
-                    keyboardType="number-pad"
-                    maxLength={6}
-                    placeholder="000000"
-                    placeholderTextColor="#ccc"
-                  />
-                </View>
-                {otpError ? <Text style={styles.otpErrorText}>{otpError}</Text> : null}
-
-                <TouchableOpacity
-                  style={styles.verifyOtpButton}
-                  onPress={handleVerifyOtp}
-                >
-                  <Text style={styles.verifyOtpButtonText}>Verify Code</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.resendButton}
-                  onPress={handleResendOtp}
-                  disabled={resendTimer > 0}
-                >
-                  <Text style={[styles.resendButtonText, resendTimer > 0 && styles.resendButtonDisabled]}>
-                    {resendTimer > 0 ? `Resend code in ${resendTimer}s` : "Resend Code"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Modal>
 
           {/* Professional Information Section */}
           <View style={styles.section}>
