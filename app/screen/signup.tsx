@@ -21,7 +21,7 @@ import {
   View,
   ActivityIndicator,
 } from "react-native";
-import { sendVerificationEmail } from "@/services/emailService";
+import { sendOTPviaSMS } from "@/services/emailService";
 
 // Validation error interface
 interface ValidationErrors {
@@ -70,7 +70,7 @@ export default function SignupScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Email verification states
-  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [generatedOtp, setGeneratedOtp] = useState("");
@@ -266,7 +266,7 @@ export default function SignupScreen() {
   // ✅ Check if form is valid
   const isFormValid = () => {
     const requiredFields = [name, phone, email, password, confirmPassword, department, hospital, degree, registrationNumber, place, dob, appointmentTime];
-    return requiredFields.every(f => f.trim() !== "") && password === confirmPassword && password.length >= 6 && isEmailVerified;
+    return requiredFields.every(f => f.trim() !== "") && password === confirmPassword && password.length >= 6 && isPhoneVerified;
   };
 
   // ✅ Get password strength label and color
@@ -294,16 +294,16 @@ export default function SignupScreen() {
     return () => clearInterval(interval);
   }, [resendTimer]);
 
-  // ✅ Send verification email with OTP
+  // ✅ Send verification SMS with OTP
   const handleSendVerificationCode = async () => {
-    if (!email) {
-      Alert.alert("Email Required", "Please enter your email address first.");
+    if (!phone) {
+      Alert.alert("Phone Required", "Please enter your phone number first.");
       return;
     }
 
-    const emailError = validateField("email", email);
-    if (emailError) {
-      Alert.alert("Invalid Email", emailError);
+    const phoneError = validateField("phone", phone);
+    if (phoneError) {
+      Alert.alert("Invalid Phone", phoneError);
       return;
     }
 
@@ -314,24 +314,23 @@ export default function SignupScreen() {
       const otp = generateOtp();
       setGeneratedOtp(otp);
 
-      const result = await sendVerificationEmail({
-        email: email,
-        otp: otp,
-        name: name || "User",
-      });
+      // Format phone with Bangladesh country code (+880)
+      const formattedPhone = phone.startsWith("0") ? `+88${phone}` : `+880${phone}`;
+
+      const result = await sendOTPviaSMS(formattedPhone, otp, name || "User");
 
       if (result.success) {
         setShowOtpModal(true);
         setResendTimer(60); // 60 seconds cooldown
         Alert.alert(
           "Verification Code Sent",
-          `A 6-digit verification code has been sent to ${email}. Please check your inbox and spam folder.`
+          `A 6-digit verification code has been sent to ${phone} via SMS.`
         );
       } else {
-        Alert.alert("Error", result.error || "Failed to send verification email. Please try again.");
+        Alert.alert("Error", result.error || "Failed to send SMS. Please try again.");
       }
     } catch (error: any) {
-      Alert.alert("Error", "Failed to send verification email. Please try again.");
+      Alert.alert("Error", "Failed to send SMS. Please try again.");
     } finally {
       setOtpLoading(false);
     }
@@ -345,7 +344,7 @@ export default function SignupScreen() {
     }
 
     if (otpCode === generatedOtp) {
-      setIsEmailVerified(true);
+      setIsPhoneVerified(true);
       setShowOtpModal(false);
       setOtpCode("");
       setOtpError("");
@@ -452,36 +451,18 @@ export default function SignupScreen() {
               <TextInput
                 placeholder="Phone Number (11 digits) *"
                 value={phone}
-                onChangeText={(v) => handleChange("phone", v.replace(/[^0-9]/g, ""), setPhone)}
+                onChangeText={(v) => {
+                  handleChange("phone", v.replace(/[^0-9]/g, ""), setPhone);
+                  if (isPhoneVerified) setIsPhoneVerified(false); // Reset verification if phone changes
+                }}
                 onBlur={() => handleBlur("phone", phone)}
                 style={styles.input}
                 keyboardType="phone-pad"
                 maxLength={11}
                 placeholderTextColor="#999"
+                editable={!isPhoneVerified}
               />
-              {touched.phone && !errors.phone && phone && (
-                <Ionicons name="checkmark-circle" size={20} color="#28a745" />
-              )}
-            </View>
-            {touched.phone && errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
-
-            <View style={[styles.inputContainer, touched.email && errors.email && styles.inputError]}>
-              <Ionicons name="mail-outline" size={20} color={touched.email && errors.email ? "#dc3545" : "#666"} style={styles.icon} />
-              <TextInput
-                placeholder="Email Address *"
-                value={email}
-                onChangeText={(v) => {
-                  handleChange("email", v, setEmail);
-                  if (isEmailVerified) setIsEmailVerified(false); // Reset verification if email changes
-                }}
-                onBlur={() => handleBlur("email", email)}
-                style={styles.input}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                placeholderTextColor="#999"
-                editable={!isEmailVerified}
-              />
-              {isEmailVerified ? (
+              {isPhoneVerified ? (
                 <View style={styles.verifiedBadge}>
                   <Ionicons name="checkmark-circle" size={20} color="#28a745" />
                   <Text style={styles.verifiedText}>Verified</Text>
@@ -490,20 +471,38 @@ export default function SignupScreen() {
                 <TouchableOpacity
                   onPress={handleSendVerificationCode}
                   style={styles.verifyButton}
-                  disabled={otpLoading || !email}
+                  disabled={otpLoading || !phone || phone.length !== 11}
                 >
                   {otpLoading ? (
                     <ActivityIndicator size="small" color="#007AFF" />
                   ) : (
-                    <Text style={[styles.verifyButtonText, !email && styles.verifyButtonDisabled]}>Verify</Text>
+                    <Text style={[styles.verifyButtonText, (!phone || phone.length !== 11) && styles.verifyButtonDisabled]}>Verify</Text>
                   )}
                 </TouchableOpacity>
               )}
             </View>
-            {touched.email && errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-            {!isEmailVerified && email && !errors.email && (
-              <Text style={styles.verifyHintText}>Please verify your email to continue</Text>
+            {touched.phone && errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
+            {!isPhoneVerified && phone && phone.length === 11 && !errors.phone && (
+              <Text style={styles.verifyHintText}>Please verify your phone number to continue</Text>
             )}
+
+            <View style={[styles.inputContainer, touched.email && errors.email && styles.inputError]}>
+              <Ionicons name="mail-outline" size={20} color={touched.email && errors.email ? "#dc3545" : "#666"} style={styles.icon} />
+              <TextInput
+                placeholder="Email Address *"
+                value={email}
+                onChangeText={(v) => handleChange("email", v, setEmail)}
+                onBlur={() => handleBlur("email", email)}
+                style={styles.input}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholderTextColor="#999"
+              />
+              {touched.email && !errors.email && email && (
+                <Ionicons name="checkmark-circle" size={20} color="#28a745" />
+              )}
+            </View>
+            {touched.email && errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
             {/* Date of Birth Picker */}
             <TouchableOpacity
