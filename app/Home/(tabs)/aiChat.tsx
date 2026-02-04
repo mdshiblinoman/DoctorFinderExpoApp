@@ -604,6 +604,7 @@ const styles = StyleSheet.create({
         gap: 8,
         borderTopWidth: 1,
         borderTopColor: theme.colors.border,
+        paddingBottom: 90, // Extra padding to account for BottomNav
     },
     disclaimerText: {
         fontSize: 11,

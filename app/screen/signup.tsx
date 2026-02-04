@@ -1,6 +1,8 @@
+import { theme } from "@/constants/theme";
 import { auth, db } from "@/firebaseConfig";
 import BackButton from "@/components/BackButton";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -318,7 +320,7 @@ export default function SignupScreen() {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
-        style={{ flex: 1, backgroundColor: '#f8f9fa' }}
+        style={styles.keyboardView}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
@@ -329,6 +331,12 @@ export default function SignupScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.header}>
+            <LinearGradient
+              colors={theme.colors.gradientPrimary}
+              style={styles.headerIconContainer}
+            >
+              <Ionicons name="medical" size={32} color="#fff" />
+            </LinearGradient>
             <Text style={styles.title}>Create Account</Text>
             <Text style={styles.subtitle}>Sign up as a Doctor</Text>
           </View>
@@ -605,10 +613,23 @@ export default function SignupScreen() {
             ]}
             onPress={handleSignup}
             disabled={loading}
+            activeOpacity={0.8}
           >
-            <Text style={styles.signupButtonText}>
-              {loading ? "Creating Account..." : "Sign Up"}
-            </Text>
+            <LinearGradient
+              colors={isFormValid() && !loading ? theme.colors.gradientSecondary : ['#d1d5db', '#9ca3af']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.signupButtonGradient}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Ionicons name="person-add-outline" size={20} color="#fff" />
+              )}
+              <Text style={styles.signupButtonText}>
+                {loading ? "Creating Account..." : "Sign Up"}
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -627,182 +648,191 @@ export default function SignupScreen() {
 }
 
 const styles = StyleSheet.create({
+  keyboardView: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
   container: {
     flexGrow: 1,
-    padding: 20,
-    paddingBottom: 40,
-    backgroundColor: "#f8f9fa",
+    padding: theme.spacing.lg,
+    paddingBottom: theme.spacing.xxl,
+    backgroundColor: theme.colors.background,
   },
   header: {
     alignItems: "center",
-    marginTop: 40,
-    marginBottom: 30,
+    marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
+  },
+  headerIconContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: theme.spacing.md,
+    ...theme.shadowLarge,
   },
   title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    marginBottom: 8,
+    fontSize: theme.fontSize.xxxl,
+    fontWeight: "700",
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
   },
   subtitle: {
-    fontSize: 16,
-    color: "#666",
-    marginTop: 4,
+    fontSize: theme.fontSize.md,
+    color: theme.colors.textSecondary,
+    marginTop: theme.spacing.xs,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: theme.spacing.lg,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 16,
-    paddingLeft: 4,
+    fontSize: theme.fontSize.lg,
+    fontWeight: "700",
+    color: theme.colors.text,
+    marginBottom: theme.spacing.md,
+    paddingLeft: theme.spacing.xs,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.md,
     borderWidth: 1,
-    borderColor: "#e0e0e0",
-    paddingHorizontal: 16,
-    marginBottom: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    borderColor: theme.colors.border,
+    paddingHorizontal: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
+    ...theme.shadow,
   },
   inputError: {
-    borderColor: "#dc3545",
+    borderColor: theme.colors.error,
     borderWidth: 1.5,
     backgroundColor: "#fff5f5",
   },
   icon: {
-    marginRight: 12,
+    marginRight: theme.spacing.sm,
   },
   input: {
     flex: 1,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: "#333",
+    paddingVertical: theme.spacing.md,
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text,
   },
   pickerText: {
-    color: "#999",
+    color: theme.colors.textLight,
   },
   errorText: {
-    color: "#dc3545",
-    fontSize: 12,
-    marginLeft: 4,
-    marginBottom: 12,
+    color: theme.colors.error,
+    fontSize: theme.fontSize.xs,
+    marginLeft: theme.spacing.xs,
+    marginBottom: theme.spacing.sm,
     marginTop: 2,
   },
   tipText: {
-    color: "#fd7e14",
+    color: theme.colors.warning,
   },
   strengthContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
-    marginTop: 4,
-    paddingHorizontal: 4,
+    marginBottom: theme.spacing.md,
+    marginTop: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.xs,
   },
   strengthBarContainer: {
     flexDirection: "row",
     flex: 1,
-    marginRight: 10,
+    marginRight: theme.spacing.sm,
   },
   strengthBar: {
     flex: 1,
     height: 4,
     borderRadius: 2,
-    marginRight: 4,
+    marginRight: theme.spacing.xs,
   },
   strengthText: {
-    fontSize: 12,
+    fontSize: theme.fontSize.xs,
     fontWeight: "600",
     minWidth: 70,
     textAlign: "right",
   },
   requiredNote: {
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: theme.spacing.sm,
   },
   requiredNoteText: {
-    fontSize: 13,
-    color: "#666",
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
     fontStyle: "italic",
   },
   signupButton: {
-    backgroundColor: "#007AFF",
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: "center",
-    marginTop: 12,
-    marginBottom: 16,
-    shadowColor: "#007AFF",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    borderRadius: theme.radius.lg,
+    overflow: "hidden",
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+    ...theme.shadowLarge,
   },
   signupButtonDisabled: {
-    backgroundColor: "#a0c4ff",
-    shadowOpacity: 0.1,
+    opacity: 0.8,
+  },
+  signupButtonGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: theme.spacing.lg,
+    gap: theme.spacing.sm,
   },
   signupButtonText: {
     color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: theme.fontSize.lg,
+    fontWeight: "700",
   },
   loginLink: {
     alignItems: "center",
-    paddingVertical: 12,
-    marginBottom: 20,
+    paddingVertical: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
   },
   loginLinkText: {
-    fontSize: 15,
-    color: "#666",
+    fontSize: theme.fontSize.md,
+    color: theme.colors.textSecondary,
   },
   loginLinkBold: {
-    color: "#007AFF",
+    color: theme.colors.primary,
     fontWeight: "600",
   },
   eyeIcon: {
-    padding: 8,
-    marginRight: 4,
+    padding: theme.spacing.sm,
+    marginRight: theme.spacing.xs,
   },
   verifyButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radius.sm,
     backgroundColor: "#e8f4ff",
   },
   verifyButtonText: {
-    color: "#007AFF",
-    fontSize: 14,
+    color: theme.colors.primary,
+    fontSize: theme.fontSize.sm,
     fontWeight: "600",
   },
   verifyButtonDisabled: {
-    color: "#999",
+    color: theme.colors.textLight,
   },
   verifiedBadge: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 8,
+    paddingHorizontal: theme.spacing.sm,
   },
   verifiedText: {
-    color: "#28a745",
-    fontSize: 12,
+    color: theme.colors.secondary,
+    fontSize: theme.fontSize.xs,
     fontWeight: "600",
-    marginLeft: 4,
+    marginLeft: theme.spacing.xs,
   },
   verifyHintText: {
-    color: "#fd7e14",
-    fontSize: 12,
-    marginLeft: 4,
-    marginBottom: 12,
+    color: theme.colors.warning,
+    fontSize: theme.fontSize.xs,
+    marginLeft: theme.spacing.xs,
+    marginBottom: theme.spacing.sm,
     marginTop: 2,
   },
   modalOverlay: {
@@ -810,85 +840,85 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: theme.spacing.lg,
   },
   modalContent: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 30,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.xl,
+    padding: theme.spacing.xl,
     width: "100%",
     maxWidth: 350,
     alignItems: "center",
   },
   modalCloseButton: {
     position: "absolute",
-    top: 15,
-    right: 15,
-    padding: 5,
+    top: theme.spacing.md,
+    right: theme.spacing.md,
+    padding: theme.spacing.xs,
   },
   modalIcon: {
-    marginBottom: 15,
+    marginBottom: theme.spacing.md,
   },
   modalTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 8,
+    fontSize: theme.fontSize.xl,
+    fontWeight: "700",
+    color: theme.colors.text,
+    marginBottom: theme.spacing.sm,
   },
   modalSubtitle: {
-    fontSize: 14,
-    color: "#666",
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
   },
   modalEmail: {
-    fontSize: 14,
+    fontSize: theme.fontSize.sm,
     fontWeight: "600",
-    color: "#007AFF",
-    marginBottom: 20,
+    color: theme.colors.primary,
+    marginBottom: theme.spacing.lg,
   },
   otpInputContainer: {
     width: "100%",
-    marginBottom: 10,
+    marginBottom: theme.spacing.sm,
   },
   otpInput: {
     borderWidth: 2,
-    borderColor: "#007AFF",
-    borderRadius: 12,
-    padding: 15,
-    fontSize: 24,
+    borderColor: theme.colors.primary,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.md,
+    fontSize: theme.fontSize.xxl,
     textAlign: "center",
     letterSpacing: 10,
     fontWeight: "bold",
-    color: "#333",
+    color: theme.colors.text,
   },
   otpErrorText: {
-    color: "#dc3545",
-    fontSize: 13,
-    marginBottom: 10,
+    color: theme.colors.error,
+    fontSize: theme.fontSize.sm,
+    marginBottom: theme.spacing.sm,
   },
   verifyOtpButton: {
-    backgroundColor: "#007AFF",
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 40,
-    marginTop: 10,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.md,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xl,
+    marginTop: theme.spacing.sm,
     width: "100%",
   },
   verifyOtpButtonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: theme.fontSize.md,
     fontWeight: "600",
     textAlign: "center",
   },
   resendButton: {
-    marginTop: 15,
-    padding: 10,
+    marginTop: theme.spacing.md,
+    padding: theme.spacing.sm,
   },
   resendButtonText: {
-    color: "#007AFF",
-    fontSize: 14,
+    color: theme.colors.primary,
+    fontSize: theme.fontSize.sm,
     fontWeight: "500",
   },
   resendButtonDisabled: {
-    color: "#999",
+    color: theme.colors.textLight,
   },
 });

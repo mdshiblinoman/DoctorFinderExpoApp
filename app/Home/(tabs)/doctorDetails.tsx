@@ -78,6 +78,7 @@ export default function DoctorDetails() {
 
       <ScrollView
         style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Header */}
@@ -181,6 +182,9 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 100, // Extra padding to account for BottomNav
   },
   profileSection: {
     alignItems: "center",
