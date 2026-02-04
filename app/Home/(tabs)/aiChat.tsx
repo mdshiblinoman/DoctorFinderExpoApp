@@ -64,65 +64,78 @@ export default function AIChatScreen() {
     }, []);
 
     const generateAIResponse = async (userMessage: string) => {
-        // Quick guard: if API key is not set, avoid calling the remote API and return
-        // a clear message so developers/users know how to fix configuration.
-        if (!AI_CONFIG.OPENROUTER_API_KEY || AI_CONFIG.OPENROUTER_API_KEY.trim() === "") {
-            console.error("AI Error: OPENROUTER_API_KEY is not set in AI_CONFIG");
-            return "⚠️ AI service not configured. Please set EXPO_PUBLIC_OPENROUTER_API_KEY in your environment (use .env for local dev or Expo `extra`/EAS secrets for production).";
+        // Debug: Log API key status
+        console.log("API Key status:", AI_CONFIG.GEMINI_API_KEY ? `Set (${AI_CONFIG.GEMINI_API_KEY.substring(0, 10)}...)` : "NOT SET");
+        console.log("API URL:", AI_CONFIG.API_URL);
+
+        // Quick guard: if API key is not set, avoid calling the remote API
+        if (!AI_CONFIG.GEMINI_API_KEY || AI_CONFIG.GEMINI_API_KEY.trim() === "") {
+            console.error("AI Error: GEMINI_API_KEY is not set in AI_CONFIG");
+            return "⚠️ AI service not configured";
         }
 
         try {
-            // Get previous messages for context, limited to last 5 exchanges
-            const contextMessages = messages
-                .slice(-10)
+            // Build conversation history for Gemini (only include if there are previous messages)
+            const conversationHistory = messages
+                .slice(-6)
                 .map(msg => ({
-                    role: msg.sender === "user" ? "user" : "assistant",
-                    content: msg.text
+                    role: msg.sender === "user" ? "user" : "model",
+                    parts: [{ text: msg.text }]
                 }));
 
-            const response = await fetch(AI_CONFIG.API_URL, {
+            const requestBody = {
+                contents: [
+                    {
+                        role: "user",
+                        parts: [{ text: AI_CONFIG.MEDICAL_ASSISTANT_PROMPT }]
+                    },
+                    {
+                        role: "model",
+                        parts: [{ text: "I understand. I will act as a medical AI assistant that helps with symptom analysis and doctor recommendations." }]
+                    },
+                    ...conversationHistory,
+                    {
+                        role: "user",
+                        parts: [{ text: userMessage }]
+                    }
+                ],
+                generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 200,
+                }
+            };
+
+            console.log("Sending request to Gemini API...");
+
+            const response = await fetch(`${AI_CONFIG.API_URL}?key=${AI_CONFIG.GEMINI_API_KEY}`, {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${AI_CONFIG.OPENROUTER_API_KEY}`,
-                    "HTTP-Referer": AI_CONFIG.SITE_URL,
-                    "X-Title": AI_CONFIG.SITE_NAME,
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({
-                    model: AI_CONFIG.MODEL,
-                    messages: [
-                        {
-                            role: "system",
-                            content: AI_CONFIG.MEDICAL_ASSISTANT_PROMPT
-                        },
-                        ...contextMessages,
-                        {
-                            role: "user",
-                            content: userMessage
-                        }
-                    ],
-                    temperature: 0.7,
-                    max_tokens: 150
-                })
+                body: JSON.stringify(requestBody)
             });
+
+            console.log("Response status:", response.status);
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                console.error("API Error:", errorData);
-                throw new Error(`API request failed: ${response.status}`);
+                console.error("Gemini API Error Response:", JSON.stringify(errorData, null, 2));
+                throw new Error(`API request failed: ${response.status} - ${errorData?.error?.message || 'Unknown error'}`);
             }
 
             const data = await response.json();
-            const aiText = data.choices?.[0]?.message?.content || "I couldn't generate a response. Please try again.";
+            console.log("Gemini API Response received");
+
+            const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't generate a response. Please try again.";
             return aiText;
         } catch (error: any) {
-            console.error("AI Error:", error);
+            console.error("AI Error Details:", error.message, error);
 
-            if (error.message?.includes("API key") || error.message?.includes("401")) {
-                return "⚠️ AI service configuration error. Please make sure the API key is properly set. Meanwhile, I recommend consulting a doctor directly for your health concerns.";
+            if (error.message?.includes("API key") || error.message?.includes("401") || error.message?.includes("403")) {
+                return "⚠️ API key error: " + error.message;
             }
 
-            return "I apologize, but I'm having trouble processing your request right now. Please try again or consult a doctor directly for your health concerns.";
+            return "Error: " + error.message + ". Please try again or consult a doctor directly.";
         }
     };
 

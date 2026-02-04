@@ -38,9 +38,5 @@
     "experiments": {
       "typedRoutes": true
     }
-    ,
-    "extra": {
-      "EXPO_PUBLIC_OPENROUTER_API_KEY": "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"
-    }
   }
 }
