@@ -1,20 +1,26 @@
 import { AI_CONFIG } from "@/config/aiConfig";
-import BackButton from "@/components/BackButton";
-import { Ionicons } from "@expo/vector-icons";
+import { theme } from "@/constants/theme";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
+    Animated,
+    Dimensions,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
+    StatusBar,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
     View,
 } from "react-native";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 interface Message {
     id: string;
@@ -23,11 +29,19 @@ interface Message {
     timestamp: Date;
 }
 
+const QUICK_SUGGESTIONS = [
+    "I have a headache",
+    "Feeling tired",
+    "Stomach pain",
+    "Skin rash",
+    "Back pain",
+];
+
 export default function AIChatScreen() {
     const [messages, setMessages] = useState<Message[]>([
         {
             id: "1",
-            text: "Hello! I'm your AI Medical Assistant. I can help you understand your symptoms and suggest appropriate doctors. Please describe your symptoms or health concerns.",
+            text: "👋 Hello! I'm your AI Medical Assistant.\n\nI can help you understand your symptoms and suggest the right specialist doctor. Please describe what you're experiencing.",
             sender: "ai",
             timestamp: new Date(),
         },
@@ -35,10 +49,19 @@ export default function AIChatScreen() {
     const [inputText, setInputText] = useState("");
     const [loading, setLoading] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null);
+    const fadeAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
     }, [messages]);
+
+    useEffect(() => {
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+        }).start();
+    }, []);
 
     const generateAIResponse = async (userMessage: string) => {
         // Quick guard: if API key is not set, avoid calling the remote API and return
@@ -164,143 +187,219 @@ export default function AIChatScreen() {
         return `${formattedHours}:${formattedMinutes} ${ampm}`;
     };
 
+    const handleQuickSuggestion = (suggestion: string) => {
+        setInputText(suggestion);
+    };
+
+    const renderMessage = (message: Message) => {
+        const isUser = message.sender === "user";
+
+        return (
+            <Animated.View
+                key={message.id}
+                style={[
+                    styles.messageWrapper,
+                    isUser ? styles.userMessageWrapper : styles.aiMessageWrapper,
+                    { opacity: fadeAnim },
+                ]}
+            >
+                {!isUser && (
+                    <LinearGradient
+                        colors={[theme.colors.primary, '#60a5fa']}
+                        style={styles.aiAvatar}
+                    >
+                        <MaterialCommunityIcons name="robot-happy" size={20} color="#fff" />
+                    </LinearGradient>
+                )}
+                <View
+                    style={[
+                        styles.messageBubble,
+                        isUser ? styles.userBubble : styles.aiBubble,
+                    ]}
+                >
+                    <Text style={[styles.messageText, isUser ? styles.userText : styles.aiText]}>
+                        {message.text}
+                    </Text>
+                    <Text style={[styles.timestamp, isUser && styles.userTimestamp]}>
+                        {formatTime(message.timestamp)}
+                    </Text>
+                </View>
+                {isUser && (
+                    <LinearGradient
+                        colors={['#10b981', '#059669']}
+                        style={styles.userAvatar}
+                    >
+                        <Ionicons name="person" size={18} color="#fff" />
+                    </LinearGradient>
+                )}
+            </Animated.View>
+        );
+    };
+
     return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-        >
+        <View style={styles.container}>
+            <StatusBar barStyle="light-content" backgroundColor={theme.colors.primary} />
+
             {/* Header */}
-            <View style={styles.header}>
+            <LinearGradient
+                colors={[theme.colors.primary, '#2563eb']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.header}
+            >
                 <TouchableOpacity
                     style={styles.backButton}
                     onPress={() => router.back()}
+                    activeOpacity={0.7}
                 >
-                    <Ionicons name="arrow-back" size={24} color="#fff" />
+                    <Ionicons name="chevron-back" size={28} color="#fff" />
                 </TouchableOpacity>
+
                 <View style={styles.headerCenter}>
-                    <Ionicons name="medkit" size={24} color="#fff" />
-                    <Text style={styles.headerTitle}>AI Medical Assistant</Text>
+                    <View style={styles.headerIconContainer}>
+                        <MaterialCommunityIcons name="robot-happy" size={22} color="#fff" />
+                    </View>
+                    <View>
+                        <Text style={styles.headerTitle}>AI Medical Assistant</Text>
+                        <Text style={styles.headerSubtitle}>
+                            {loading ? "Thinking..." : "Online • Ready to help"}
+                        </Text>
+                    </View>
                 </View>
-                <TouchableOpacity style={styles.clearButton} onPress={clearChat}>
-                    <Ionicons name="trash-outline" size={22} color="#fff" />
+
+                <TouchableOpacity
+                    style={styles.clearButton}
+                    onPress={clearChat}
+                    activeOpacity={0.7}
+                >
+                    <Ionicons name="refresh-outline" size={24} color="#fff" />
                 </TouchableOpacity>
-            </View>
+            </LinearGradient>
 
-            {/* Chat Messages */}
-            <ScrollView
-                ref={scrollViewRef}
-                style={styles.chatContainer}
-                contentContainerStyle={styles.chatContent}
-                showsVerticalScrollIndicator={false}
+            <KeyboardAvoidingView
+                style={styles.keyboardContainer}
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
             >
-                {messages.map((message) => (
-                    <View
-                        key={message.id}
-                        style={[
-                            styles.messageBubble,
-                            message.sender === "user"
-                                ? styles.userBubble
-                                : styles.aiBubble,
-                        ]}
-                    >
-                        {message.sender === "ai" && (
-                            <View style={styles.aiIcon}>
-                                <Ionicons name="medkit" size={20} color="#007AFF" />
-                            </View>
-                        )}
-                        <View style={styles.messageContent}>
-                            <Text
-                                style={[
-                                    styles.messageText,
-                                    message.sender === "user"
-                                        ? styles.userText
-                                        : styles.aiText,
-                                ]}
+                {/* Chat Messages */}
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={styles.chatContainer}
+                    contentContainerStyle={styles.chatContent}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    {messages.map(renderMessage)}
+
+                    {loading && (
+                        <View style={[styles.messageWrapper, styles.aiMessageWrapper]}>
+                            <LinearGradient
+                                colors={[theme.colors.primary, '#60a5fa']}
+                                style={styles.aiAvatar}
                             >
-                                {message.text}
-                            </Text>
-                            <Text style={styles.timestamp}>
-                                {formatTime(message.timestamp)}
-                            </Text>
+                                <MaterialCommunityIcons name="robot-happy" size={20} color="#fff" />
+                            </LinearGradient>
+                            <View style={styles.typingBubble}>
+                                <View style={styles.typingDots}>
+                                    <ActivityIndicator size="small" color={theme.colors.primary} />
+                                    <Text style={styles.typingText}>Analyzing symptoms...</Text>
+                                </View>
+                            </View>
                         </View>
-                    </View>
-                ))}
-                {loading && (
-                    <View style={[styles.messageBubble, styles.aiBubble]}>
-                        <View style={styles.aiIcon}>
-                            <Ionicons name="medkit" size={20} color="#007AFF" />
-                        </View>
-                        <View style={styles.typingIndicator}>
-                            <ActivityIndicator size="small" color="#007AFF" />
-                            <Text style={styles.typingText}>Analyzing...</Text>
-                        </View>
-                    </View>
-                )}
-            </ScrollView>
+                    )}
 
-            {/* Input Area */}
-            <View style={styles.inputContainer}>
-                <View style={styles.inputWrapper}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Describe your symptoms..."
-                        placeholderTextColor="#999"
-                        value={inputText}
-                        onChangeText={setInputText}
-                        multiline
-                        maxLength={500}
-                    />
-                    <TouchableOpacity
-                        style={[
-                            styles.sendButton,
-                            inputText.trim() === "" && styles.sendButtonDisabled,
-                        ]}
-                        onPress={handleSend}
-                        disabled={inputText.trim() === "" || loading}
-                    >
-                        <Ionicons
-                            name="send"
-                            size={24}
-                            color={inputText.trim() === "" ? "#ccc" : "#fff"}
+                    {/* Quick Suggestions - Only show when no loading and few messages */}
+                    {!loading && messages.length <= 2 && (
+                        <View style={styles.suggestionsContainer}>
+                            <Text style={styles.suggestionsTitle}>Quick suggestions:</Text>
+                            <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                contentContainerStyle={styles.suggestionsScroll}
+                            >
+                                {QUICK_SUGGESTIONS.map((suggestion, index) => (
+                                    <TouchableOpacity
+                                        key={index}
+                                        style={styles.suggestionChip}
+                                        onPress={() => handleQuickSuggestion(suggestion)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Text style={styles.suggestionText}>{suggestion}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </ScrollView>
+                        </View>
+                    )}
+                </ScrollView>
+
+                {/* Input Area */}
+                <View style={styles.inputContainer}>
+                    <View style={styles.inputWrapper}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Describe your symptoms..."
+                            placeholderTextColor={theme.colors.muted}
+                            value={inputText}
+                            onChangeText={setInputText}
+                            multiline
+                            maxLength={500}
+                            editable={!loading}
                         />
-                    </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[
+                                styles.sendButton,
+                                (inputText.trim() === "" || loading) && styles.sendButtonDisabled,
+                            ]}
+                            onPress={handleSend}
+                            disabled={inputText.trim() === "" || loading}
+                            activeOpacity={0.8}
+                        >
+                            <LinearGradient
+                                colors={inputText.trim() === "" || loading
+                                    ? ['#d1d5db', '#9ca3af']
+                                    : [theme.colors.primary, '#2563eb']}
+                                style={styles.sendButtonGradient}
+                            >
+                                <Ionicons
+                                    name="send"
+                                    size={20}
+                                    color="#fff"
+                                />
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
 
-            {/* Disclaimer */}
-            <View style={styles.disclaimer}>
-                <Ionicons name="information-circle" size={16} color="#666" />
-                <Text style={styles.disclaimerText}>
-                    This AI provides suggestions only. Always consult a real doctor.
-                </Text>
-            </View>
-        </KeyboardAvoidingView>
+                {/* Disclaimer */}
+                <View style={styles.disclaimer}>
+                    <Ionicons name="shield-checkmark" size={14} color={theme.colors.primary} />
+                    <Text style={styles.disclaimerText}>
+                        AI suggestions only • Always consult a real doctor for medical advice
+                    </Text>
+                </View>
+            </KeyboardAvoidingView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#f5f7fa",
+        backgroundColor: theme.colors.background,
     },
     header: {
-        backgroundColor: "#007AFF",
-        paddingTop: 50,
+        paddingTop: Platform.OS === 'ios' ? 50 : StatusBar.currentHeight ? StatusBar.currentHeight + 10 : 40,
         paddingBottom: 16,
         paddingHorizontal: 16,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 5,
     },
     backButton: {
-        width: 40,
-        height: 40,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: "rgba(255,255,255,0.2)",
         justifyContent: "center",
         alignItems: "center",
     },
@@ -308,138 +407,207 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: "row",
         alignItems: "center",
+        marginLeft: 12,
+        gap: 12,
+    },
+    headerIconContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: "rgba(255,255,255,0.2)",
         justifyContent: "center",
-        gap: 8,
+        alignItems: "center",
     },
     headerTitle: {
         fontSize: 18,
-        fontWeight: "600",
+        fontWeight: "700",
         color: "#fff",
     },
+    headerSubtitle: {
+        fontSize: 12,
+        color: "rgba(255,255,255,0.8)",
+        marginTop: 2,
+    },
     clearButton: {
-        width: 40,
-        height: 40,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: "rgba(255,255,255,0.2)",
         justifyContent: "center",
         alignItems: "center",
+    },
+    keyboardContainer: {
+        flex: 1,
     },
     chatContainer: {
         flex: 1,
     },
     chatContent: {
         padding: 16,
-        paddingBottom: 20,
+        paddingBottom: 24,
     },
-    messageBubble: {
+    messageWrapper: {
         flexDirection: "row",
         marginBottom: 16,
-        maxWidth: "85%",
+        alignItems: "flex-end",
     },
-    userBubble: {
-        alignSelf: "flex-end",
-        flexDirection: "row-reverse",
+    userMessageWrapper: {
+        justifyContent: "flex-end",
     },
-    aiBubble: {
-        alignSelf: "flex-start",
+    aiMessageWrapper: {
+        justifyContent: "flex-start",
     },
-    aiIcon: {
+    aiAvatar: {
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: "#e3f2fd",
         justifyContent: "center",
         alignItems: "center",
-        marginRight: 8,
+        marginRight: 10,
+        ...theme.shadow,
     },
-    messageContent: {
-        flex: 1,
-        backgroundColor: "#fff",
+    userAvatar: {
+        width: 32,
+        height: 32,
         borderRadius: 16,
-        padding: 12,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-        elevation: 2,
+        justifyContent: "center",
+        alignItems: "center",
+        marginLeft: 10,
+    },
+    messageBubble: {
+        maxWidth: SCREEN_WIDTH * 0.7,
+        borderRadius: 20,
+        padding: 14,
+        ...theme.shadow,
+    },
+    userBubble: {
+        backgroundColor: theme.colors.primary,
+        borderBottomRightRadius: 6,
+    },
+    aiBubble: {
+        backgroundColor: "#fff",
+        borderBottomLeftRadius: 6,
     },
     messageText: {
         fontSize: 15,
-        lineHeight: 20,
+        lineHeight: 22,
     },
     userText: {
-        color: "#333",
+        color: "#fff",
     },
     aiText: {
-        color: "#333",
+        color: theme.colors.text,
     },
     timestamp: {
-        fontSize: 11,
-        color: "#999",
-        marginTop: 4,
+        fontSize: 10,
+        color: theme.colors.muted,
+        marginTop: 6,
         textAlign: "right",
     },
-    typingIndicator: {
+    userTimestamp: {
+        color: "rgba(255,255,255,0.7)",
+    },
+    typingBubble: {
+        backgroundColor: "#fff",
+        borderRadius: 20,
+        borderBottomLeftRadius: 6,
+        padding: 14,
+        ...theme.shadow,
+    },
+    typingDots: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#fff",
-        borderRadius: 16,
-        padding: 12,
-        gap: 8,
+        gap: 10,
     },
     typingText: {
         fontSize: 14,
-        color: "#666",
+        color: theme.colors.textSecondary,
         fontStyle: "italic",
+    },
+    suggestionsContainer: {
+        marginTop: 16,
+        paddingTop: 16,
+        borderTopWidth: 1,
+        borderTopColor: theme.colors.border,
+    },
+    suggestionsTitle: {
+        fontSize: 13,
+        color: theme.colors.textSecondary,
+        marginBottom: 12,
+        marginLeft: 4,
+    },
+    suggestionsScroll: {
+        paddingRight: 16,
+        gap: 8,
+    },
+    suggestionChip: {
+        backgroundColor: "#fff",
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: theme.colors.primary,
+        marginRight: 8,
+    },
+    suggestionText: {
+        fontSize: 13,
+        color: theme.colors.primary,
+        fontWeight: "500",
     },
     inputContainer: {
         backgroundColor: "#fff",
         paddingHorizontal: 16,
         paddingVertical: 12,
         borderTopWidth: 1,
-        borderTopColor: "#e0e0e0",
+        borderTopColor: theme.colors.border,
     },
     inputWrapper: {
         flexDirection: "row",
         alignItems: "flex-end",
-        gap: 8,
+        gap: 10,
     },
     input: {
         flex: 1,
-        backgroundColor: "#f5f5f5",
+        backgroundColor: theme.colors.background,
         borderRadius: 24,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
+        paddingHorizontal: 18,
+        paddingTop: 12,
+        paddingBottom: 12,
         fontSize: 15,
-        maxHeight: 100,
-        color: "#333",
+        maxHeight: 120,
+        color: theme.colors.text,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
     },
     sendButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: "#007AFF",
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        overflow: "hidden",
+    },
+    sendButtonGradient: {
+        width: "100%",
+        height: "100%",
         justifyContent: "center",
         alignItems: "center",
-        shadowColor: "#007AFF",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
-        elevation: 3,
     },
     sendButtonDisabled: {
-        backgroundColor: "#e0e0e0",
+        opacity: 0.7,
     },
     disclaimer: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#fff3cd",
-        paddingVertical: 8,
+        backgroundColor: "#eff6ff",
+        paddingVertical: 10,
         paddingHorizontal: 16,
-        gap: 6,
+        gap: 8,
+        borderTopWidth: 1,
+        borderTopColor: theme.colors.border,
     },
     disclaimerText: {
-        fontSize: 12,
-        color: "#666",
+        fontSize: 11,
+        color: theme.colors.textSecondary,
         textAlign: "center",
     },
 });
