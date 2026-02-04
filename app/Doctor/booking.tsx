@@ -1,14 +1,17 @@
+import { theme } from "@/constants/theme";
 import { db } from "@/firebaseConfig";
 import { sendAcceptanceEmail } from "@/services/emailService";
-import BackButton from "@/components/BackButton";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { onValue, ref, update } from "firebase/database";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -16,7 +19,7 @@ import {
 } from "react-native";
 
 export default function BookingList() {
-  const { doctorId } = useLocalSearchParams(); // doctorId must come from navigation
+  const { doctorId } = useLocalSearchParams();
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -34,11 +37,10 @@ export default function BookingList() {
         const list = Object.keys(data)
           .map((key) => ({ id: key, ...data[key] }))
           .sort((a, b) => {
-            // Prefer createdAt when present, otherwise fallback to key order
             const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
             const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
             if (aTime !== 0 || bTime !== 0) return bTime - aTime;
-            return b.id.localeCompare(a.id); // push keys are time-ordered
+            return b.id.localeCompare(a.id);
           });
         setBookings(list);
       } else {
@@ -53,27 +55,23 @@ export default function BookingList() {
   const handleAccept = async (item: any) => {
     if (!doctorId || !item.id) return;
 
-    // Check if already accepted or rejected
     if (item.status === "accepted" || item.status === "rejected") {
       Alert.alert("Notice", "This booking has already been processed.");
       return;
     }
 
     try {
-      // Count existing accepted bookings to determine serial number
       const acceptedBookings = bookings.filter((b: any) => b.status === "accepted").length;
       const serialNumber = acceptedBookings + 1;
 
-      // Calculate appointment time based on serial number (20 minutes apart)
       const baseTime = new Date();
-      baseTime.setHours(9, 0, 0, 0); // Start at 9:00 AM
+      baseTime.setHours(9, 0, 0, 0);
       const appointmentTime = new Date(baseTime.getTime() + (serialNumber - 1) * 20 * 60000);
 
       const hours = appointmentTime.getHours();
       const minutes = appointmentTime.getMinutes();
       const formattedTime = `${hours > 12 ? hours - 12 : hours}:${minutes.toString().padStart(2, "0")} ${hours >= 12 ? "PM" : "AM"}`;
 
-      // Format date
       const today = new Date();
       const formattedDate = today.toLocaleDateString('en-US', {
         weekday: 'long',
@@ -91,7 +89,6 @@ export default function BookingList() {
         acceptedAt: new Date().toISOString(),
       });
 
-      // Send acceptance email to patient
       if (item.email) {
         const emailData = {
           patientEmail: item.email,
@@ -107,7 +104,6 @@ export default function BookingList() {
           acceptedAt: new Date().toLocaleString(),
         };
 
-        // Send email asynchronously (don't block UI)
         sendAcceptanceEmail(emailData)
           .then((result: { success: boolean; error?: string }) => {
             if (result.success) {
@@ -134,7 +130,6 @@ export default function BookingList() {
   const handleReject = (item: any) => {
     if (!doctorId || !item.id) return;
 
-    // Check if already accepted or rejected
     if (item.status === "accepted" || item.status === "rejected") {
       Alert.alert("Notice", "This booking has already been processed.");
       return;
@@ -168,33 +163,64 @@ export default function BookingList() {
 
   if (loading) {
     return (
-      <View style={styles.emptyContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={{ marginTop: 16, color: "#666" }}>Loading bookings...</Text>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={styles.loadingText}>Loading bookings...</Text>
       </View>
     );
   }
 
+  const pendingCount = bookings.filter(b => !b.status || b.status === "pending").length;
+  const acceptedCount = bookings.filter(b => b.status === "accepted").length;
+
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.header}>Appointment Requests</Text>
-        <View style={styles.placeholder} />
-      </View>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+
+      {/* Header */}
+      <LinearGradient
+        colors={theme.colors.gradientPrimary}
+        style={styles.header}
+      >
+        <View style={styles.headerContent}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Appointment Requests</Text>
+          <View style={styles.placeholder} />
+        </View>
+
+        {/* Stats */}
+        <View style={styles.statsRow}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{pendingCount}</Text>
+            <Text style={styles.statLabel}>Pending</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{acceptedCount}</Text>
+            <Text style={styles.statLabel}>Accepted</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{bookings.length}</Text>
+            <Text style={styles.statLabel}>Total</Text>
+          </View>
+        </View>
+      </LinearGradient>
 
       <ScrollView
-        contentContainerStyle={styles.container}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {bookings.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Ionicons name="calendar-outline" size={80} color="#ccc" />
+            <View style={styles.emptyIconContainer}>
+              <Ionicons name="calendar-outline" size={60} color={theme.colors.textLight} />
+            </View>
             <Text style={styles.emptyTitle}>No Booking Requests</Text>
             <Text style={styles.emptyText}>
               You don't have any pending appointment requests at the moment.
@@ -204,77 +230,88 @@ export default function BookingList() {
           bookings.map((item: any) => (
             <View key={item.id} style={styles.card}>
               {/* Status Badge */}
-              {item.status === "accepted" && (
-                <View style={[styles.statusBadge, styles.acceptedBadge]}>
-                  <Ionicons name="checkmark-circle" size={16} color="#fff" />
-                  <Text style={styles.badgeText}>Accepted</Text>
-                </View>
-              )}
-              {item.status === "rejected" && (
-                <View style={[styles.statusBadge, styles.rejectedBadge]}>
-                  <Ionicons name="close-circle" size={16} color="#fff" />
-                  <Text style={styles.badgeText}>Rejected</Text>
-                </View>
-              )}
-              {!item.status && (
-                <View style={[styles.statusBadge, styles.pendingBadge]}>
-                  <Ionicons name="time-outline" size={16} color="#fff" />
-                  <Text style={styles.badgeText}>Pending</Text>
-                </View>
-              )}
+              <View style={[
+                styles.statusBadge,
+                item.status === "accepted" && styles.acceptedBadge,
+                item.status === "rejected" && styles.rejectedBadge,
+                (!item.status || item.status === "pending") && styles.pendingBadge,
+              ]}>
+                <Ionicons
+                  name={
+                    item.status === "accepted" ? "checkmark-circle" :
+                      item.status === "rejected" ? "close-circle" : "time-outline"
+                  }
+                  size={14}
+                  color="#fff"
+                />
+                <Text style={styles.badgeText}>
+                  {item.status === "accepted" ? "Accepted" :
+                    item.status === "rejected" ? "Rejected" : "Pending"}
+                </Text>
+              </View>
 
               {/* Patient Info */}
-              <View style={styles.infoRow}>
-                <Ionicons name="person" size={20} color="#007AFF" />
-                <View style={styles.infoContent}>
-                  <Text style={styles.label}>Patient Name</Text>
-                  <Text style={styles.value}>{item.patientName || "N/A"}</Text>
-                </View>
-              </View>
-
-              <View style={styles.infoRow}>
-                <Ionicons name="call" size={20} color="#007AFF" />
-                <View style={styles.infoContent}>
-                  <Text style={styles.label}>Phone Number</Text>
-                  <Text style={styles.value}>{item.phone || "N/A"}</Text>
-                </View>
-              </View>
-
-              {item.email && (
+              <View style={styles.infoSection}>
                 <View style={styles.infoRow}>
-                  <Ionicons name="mail" size={20} color="#007AFF" />
+                  <View style={styles.infoIconContainer}>
+                    <Ionicons name="person" size={18} color={theme.colors.primary} />
+                  </View>
                   <View style={styles.infoContent}>
-                    <Text style={styles.label}>Email Address</Text>
-                    <Text style={styles.value}>{item.email}</Text>
+                    <Text style={styles.infoLabel}>Patient Name</Text>
+                    <Text style={styles.infoValue}>{item.patientName || "N/A"}</Text>
                   </View>
                 </View>
-              )}
 
-              {item.reason && (
                 <View style={styles.infoRow}>
-                  <Ionicons name="document-text" size={20} color="#007AFF" />
+                  <View style={styles.infoIconContainer}>
+                    <Ionicons name="call" size={18} color={theme.colors.primary} />
+                  </View>
                   <View style={styles.infoContent}>
-                    <Text style={styles.label}>Reason for Visit</Text>
-                    <Text style={styles.value}>{item.reason}</Text>
+                    <Text style={styles.infoLabel}>Phone Number</Text>
+                    <Text style={styles.infoValue}>{item.phone || "N/A"}</Text>
                   </View>
                 </View>
-              )}
+
+                {item.email && (
+                  <View style={styles.infoRow}>
+                    <View style={styles.infoIconContainer}>
+                      <Ionicons name="mail" size={18} color={theme.colors.primary} />
+                    </View>
+                    <View style={styles.infoContent}>
+                      <Text style={styles.infoLabel}>Email Address</Text>
+                      <Text style={styles.infoValue}>{item.email}</Text>
+                    </View>
+                  </View>
+                )}
+
+                {item.reason && (
+                  <View style={styles.infoRow}>
+                    <View style={styles.infoIconContainer}>
+                      <Ionicons name="document-text" size={18} color={theme.colors.primary} />
+                    </View>
+                    <View style={styles.infoContent}>
+                      <Text style={styles.infoLabel}>Reason for Visit</Text>
+                      <Text style={styles.infoValue}>{item.reason}</Text>
+                    </View>
+                  </View>
+                )}
+              </View>
 
               {/* Appointment Details (if accepted) */}
               {item.status === "accepted" && (
                 <View style={styles.appointmentDetails}>
                   <View style={styles.detailRow}>
-                    <Ionicons name="newspaper" size={18} color="#28a745" />
+                    <Ionicons name="newspaper" size={16} color={theme.colors.secondary} />
                     <Text style={styles.detailLabel}>Serial No:</Text>
                     <Text style={styles.detailValue}>#{item.serialNumber}</Text>
                   </View>
                   <View style={styles.detailRow}>
-                    <Ionicons name="time" size={18} color="#28a745" />
+                    <Ionicons name="time" size={16} color={theme.colors.secondary} />
                     <Text style={styles.detailLabel}>Time:</Text>
                     <Text style={styles.detailValue}>{item.appointmentTime}</Text>
                   </View>
                   <View style={styles.detailRow}>
-                    <Ionicons name="hourglass" size={18} color="#28a745" />
+                    <Ionicons name="hourglass" size={16} color={theme.colors.secondary} />
                     <Text style={styles.detailLabel}>Duration:</Text>
                     <Text style={styles.detailValue}>{item.appointmentDuration}</Text>
                   </View>
@@ -285,30 +322,37 @@ export default function BookingList() {
               {!item.status || (item.status !== "accepted" && item.status !== "rejected") ? (
                 <View style={styles.buttonContainer}>
                   <TouchableOpacity
-                    style={[styles.actionButton, styles.acceptButton]}
+                    style={styles.acceptButton}
                     onPress={() => handleAccept(item)}
+                    activeOpacity={0.8}
                   >
-                    <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
-                    <Text style={styles.btnText}>Accept</Text>
+                    <LinearGradient
+                      colors={theme.colors.gradientSecondary}
+                      style={styles.buttonGradient}
+                    >
+                      <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
+                      <Text style={styles.buttonText}>Accept</Text>
+                    </LinearGradient>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.actionButton, styles.rejectButton]}
+                    style={styles.rejectButton}
                     onPress={() => handleReject(item)}
+                    activeOpacity={0.8}
                   >
-                    <Ionicons name="close-circle-outline" size={20} color="#fff" />
-                    <Text style={styles.btnText}>Reject</Text>
+                    <Ionicons name="close-circle-outline" size={18} color={theme.colors.error} />
+                    <Text style={styles.rejectButtonText}>Reject</Text>
                   </TouchableOpacity>
                 </View>
               ) : (
                 <View style={styles.processedContainer}>
                   <Ionicons
                     name={item.status === "accepted" ? "checkmark-done-circle" : "close-circle"}
-                    size={24}
-                    color={item.status === "accepted" ? "#28a745" : "#dc3545"}
+                    size={20}
+                    color={item.status === "accepted" ? theme.colors.secondary : theme.colors.error}
                   />
                   <Text style={[
                     styles.processedText,
-                    { color: item.status === "accepted" ? "#28a745" : "#dc3545" }
+                    { color: item.status === "accepted" ? theme.colors.secondary : theme.colors.error }
                   ]}>
                     This booking has been {item.status}
                   </Text>
@@ -323,184 +367,245 @@ export default function BookingList() {
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
+  container: {
     flex: 1,
-    backgroundColor: "#f5f7fa",
+    backgroundColor: theme.colors.background,
   },
-  headerContainer: {
-    backgroundColor: "#007AFF",
-    paddingTop: 50,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: theme.colors.background,
+  },
+  loadingText: {
+    marginTop: theme.spacing.md,
+    fontSize: theme.fontSize.md,
+    color: theme.colors.textSecondary,
+  },
+  header: {
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight! + theme.spacing.md : 60,
+    paddingBottom: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.md,
+    borderBottomLeftRadius: theme.radius.xl,
+    borderBottomRightRadius: theme.radius.xl,
+  },
+  headerContent: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 5,
+    marginBottom: theme.spacing.md,
   },
   backButton: {
     width: 40,
     height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.2)",
     justifyContent: "center",
     alignItems: "center",
   },
   placeholder: {
     width: 40,
   },
-  header: {
-    fontSize: 20,
-    fontWeight: "bold",
+  headerTitle: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: "700",
     color: "#fff",
     textAlign: "center",
     flex: 1,
   },
-  container: {
-    padding: 16,
-    flexGrow: 1,
+  statsRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderRadius: theme.radius.lg,
+    paddingVertical: theme.spacing.md,
+    marginTop: theme.spacing.sm,
+  },
+  statItem: {
+    alignItems: "center",
+    flex: 1,
+  },
+  statNumber: {
+    fontSize: theme.fontSize.xxl,
+    fontWeight: "700",
+    color: "#fff",
+  },
+  statLabel: {
+    fontSize: theme.fontSize.xs,
+    color: "rgba(255,255,255,0.8)",
+    marginTop: 2,
+  },
+  statDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: "rgba(255,255,255,0.3)",
+  },
+  scrollContent: {
+    padding: theme.spacing.md,
+    paddingBottom: theme.spacing.xxl,
   },
   emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
     alignItems: "center",
     paddingVertical: 60,
   },
+  emptyIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: theme.colors.surface,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: theme.spacing.lg,
+    ...theme.shadow,
+  },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#333",
-    marginTop: 16,
-    marginBottom: 8,
+    fontSize: theme.fontSize.xl,
+    fontWeight: "700",
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
   },
   emptyText: {
-    fontSize: 15,
-    color: "#666",
+    fontSize: theme.fontSize.md,
+    color: theme.colors.textSecondary,
     textAlign: "center",
-    paddingHorizontal: 40,
+    paddingHorizontal: theme.spacing.xl,
   },
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 4,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
+    ...theme.shadow,
   },
   statusBadge: {
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginBottom: 16,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.full,
+    marginBottom: theme.spacing.md,
     gap: 4,
   },
   acceptedBadge: {
-    backgroundColor: "#28a745",
+    backgroundColor: theme.colors.secondary,
   },
   rejectedBadge: {
-    backgroundColor: "#dc3545",
+    backgroundColor: theme.colors.error,
   },
   pendingBadge: {
-    backgroundColor: "#ffc107",
+    backgroundColor: theme.colors.warning,
   },
   badgeText: {
     color: "#fff",
-    fontSize: 13,
+    fontSize: theme.fontSize.xs,
     fontWeight: "600",
+  },
+  infoSection: {
+    gap: theme.spacing.sm,
   },
   infoRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: 16,
-    gap: 12,
+  },
+  infoIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: theme.colors.background,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: theme.spacing.sm,
   },
   infoContent: {
     flex: 1,
+    paddingTop: 2,
   },
-  label: {
-    fontSize: 13,
-    color: "#666",
-    marginBottom: 4,
-    fontWeight: "500",
+  infoLabel: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.textSecondary,
+    marginBottom: 2,
   },
-  value: {
-    fontSize: 16,
-    color: "#333",
+  infoValue: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text,
     fontWeight: "600",
   },
   appointmentDetails: {
-    backgroundColor: "#f0f9ff",
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 8,
-    marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: "#28a745",
+    backgroundColor: "#dcfce7",
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.md,
+    marginTop: theme.spacing.md,
+    borderLeftWidth: 3,
+    borderLeftColor: theme.colors.secondary,
   },
   detailRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
-    gap: 8,
+    marginBottom: theme.spacing.xs,
+    gap: theme.spacing.xs,
   },
   detailLabel: {
-    fontSize: 14,
-    color: "#555",
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
     fontWeight: "500",
   },
   detailValue: {
-    fontSize: 14,
-    color: "#28a745",
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.secondary,
     fontWeight: "700",
     flex: 1,
   },
   buttonContainer: {
     flexDirection: "row",
-    gap: 12,
-    marginTop: 16,
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.lg,
   },
-  actionButton: {
+  acceptButton: {
+    flex: 1,
+    borderRadius: theme.radius.md,
+    overflow: "hidden",
+    ...theme.shadow,
+  },
+  buttonGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: theme.spacing.md,
+    gap: theme.spacing.xs,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: theme.fontSize.md,
+    fontWeight: "600",
+  },
+  rejectButton: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.error,
+    gap: theme.spacing.xs,
   },
-  acceptButton: {
-    backgroundColor: "#28a745",
-  },
-  rejectButton: {
-    backgroundColor: "#dc3545",
-  },
-  btnText: {
-    color: "#fff",
-    fontSize: 16,
+  rejectButtonText: {
+    color: theme.colors.error,
+    fontSize: theme.fontSize.md,
     fontWeight: "600",
   },
   processedContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 16,
-    gap: 8,
-    marginTop: 12,
+    paddingVertical: theme.spacing.md,
+    gap: theme.spacing.xs,
+    marginTop: theme.spacing.md,
   },
   processedText: {
-    fontSize: 15,
+    fontSize: theme.fontSize.sm,
     fontWeight: "600",
   },
 });

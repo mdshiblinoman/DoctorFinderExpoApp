@@ -1,6 +1,9 @@
 // app/hospitalDoctors.tsx
+import { theme } from "@/constants/theme";
 import { db } from "@/firebaseConfig";
 import BackButton from "@/components/BackButton";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { onValue, ref } from "firebase/database";
 import { useEffect, useState } from "react";
@@ -14,7 +17,6 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
 
 export default function HospitalDoctors() {
   const { hospital } = useLocalSearchParams();
@@ -53,78 +55,103 @@ export default function HospitalDoctors() {
   if (loading)
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#007bff" />
-        <Text>Loading doctors...</Text>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={styles.loadingText}>Loading doctors...</Text>
       </View>
     );
+
+  const renderDoctorCard = ({ item }: { item: any }) => (
+    <View style={[styles.card, numColumns > 1 && { width: `${100 / numColumns - 2}%` }]}>
+      <View style={styles.cardHeader}>
+        {item.photoUrl ? (
+          <Image source={{ uri: item.photoUrl }} style={styles.avatar} />
+        ) : (
+          <LinearGradient
+            colors={theme.colors.gradientPrimary}
+            style={styles.avatarPlaceholder}
+          >
+            <Text style={styles.avatarText}>
+              {item.name?.charAt(0)?.toUpperCase() || "D"}
+            </Text>
+          </LinearGradient>
+        )}
+        <View style={styles.statusIndicator} />
+      </View>
+
+      <Text style={styles.doctorName}>Dr. {item.name}</Text>
+
+      <View style={styles.infoRow}>
+        <Ionicons name="school-outline" size={14} color={theme.colors.textSecondary} />
+        <Text style={styles.infoText} numberOfLines={1}>{item.degree}</Text>
+      </View>
+
+      <View style={styles.infoRow}>
+        <Ionicons name="medical-outline" size={14} color={theme.colors.textSecondary} />
+        <Text style={styles.infoText} numberOfLines={1}>{item.department}</Text>
+      </View>
+
+      <View style={styles.buttonRow}>
+        <TouchableOpacity
+          style={styles.detailsButton}
+          onPress={() =>
+            router.push({
+              pathname: "/Home/doctorDetails",
+              params: { uid: item.uid },
+            })
+          }
+          activeOpacity={0.7}
+        >
+          <Text style={styles.detailsButtonText}>Details</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.bookButton}
+          onPress={() =>
+            router.push({
+              pathname: "/Booking/booking",
+              params: {
+                uid: item.uid,
+                name: item.name,
+                hospital: item.hospital,
+                department: item.department,
+              },
+            })
+          }
+          activeOpacity={0.8}
+        >
+          <LinearGradient
+            colors={theme.colors.gradientSecondary}
+            style={styles.bookButtonGradient}
+          >
+            <Text style={styles.bookButtonText}>Book</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
       <BackButton title={`Doctors at ${hospital}`} />
 
       {doctors.length === 0 ? (
-        <Text style={styles.noData}>No doctors found in this hospital</Text>
+        <View style={styles.emptyContainer}>
+          <Ionicons name="people-outline" size={60} color={theme.colors.textLight} />
+          <Text style={styles.emptyTitle}>No Doctors Found</Text>
+          <Text style={styles.emptyText}>No doctors are currently available in this hospital</Text>
+        </View>
       ) : (
         <FlatList
           data={doctors}
           numColumns={numColumns}
           key={numColumns}
           columnWrapperStyle={
-            numColumns > 1 ? { justifyContent: "space-between" } : undefined
+            numColumns > 1 ? styles.columnWrapper : undefined
           }
+          contentContainerStyle={styles.listContent}
           keyExtractor={(item: any, index) => item.uid || index.toString()}
-          renderItem={({ item }) => (
-            <View style={[styles.card, { width: `${100 / numColumns - 2}%` }]}>
-              {item.photoUrl ? (
-                <Image source={{ uri: item.photoUrl }} style={styles.image} />
-              ) : (
-                <View style={styles.iconWrapper}>
-                  <Icon
-                    name="person-circle-outline"
-                    size={70}
-                    color="#007bff"
-                  />
-                </View>
-              )}
-
-              <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.text}>{item.degree}</Text>
-              <Text style={styles.text}>{item.department}</Text>
-              <Text style={styles.text}>{item.hospital}</Text>
-
-              {/* Buttons Row */}
-              <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={[styles.btn, { backgroundColor: "#007bff" }]}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/Home/doctorDetails",
-                      params: { uid: item.uid },
-                    })
-                  }
-                >
-                  <Text style={styles.btnText}>More</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.btn, { backgroundColor: "#28a745" }]}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/Booking/booking",
-                      params: {
-                        uid: item.uid,
-                        name: item.name,
-                        hospital: item.hospital,
-                        department: item.department,
-                      },
-                    })
-                  }
-                >
-                  <Text style={styles.btnText}>Booking</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
+          renderItem={renderDoctorCard}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
@@ -132,40 +159,135 @@ export default function HospitalDoctors() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#eed4d4ff", padding: 16 },
-  header: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 16,
-    textAlign: "center",
-    color: "#967194ff",
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: theme.colors.background,
+  },
+  loadingText: {
+    marginTop: theme.spacing.md,
+    fontSize: theme.fontSize.md,
+    color: theme.colors.textSecondary,
+  },
+  listContent: {
+    padding: theme.spacing.md,
+    paddingBottom: theme.spacing.xxl,
+  },
+  columnWrapper: {
+    justifyContent: "space-between",
   },
   card: {
-    backgroundColor: "#b7a8bdff",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.lg,
+    borderRadius: theme.radius.lg,
+    marginBottom: theme.spacing.md,
     alignItems: "center",
-    elevation: 3,
+    ...theme.shadow,
   },
-  image: { width: 70, height: 70, borderRadius: 35, marginBottom: 8 },
-  iconWrapper: { marginBottom: 8 },
-  name: { fontSize: 16, fontWeight: "600", textAlign: "center" },
-  text: { fontSize: 16, color: "#555", textAlign: "center" },
+  cardHeader: {
+    position: "relative",
+    marginBottom: theme.spacing.md,
+  },
+  avatar: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+  },
+  avatarPlaceholder: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarText: {
+    fontSize: theme.fontSize.xxl,
+    fontWeight: "700",
+    color: "#fff",
+  },
+  statusIndicator: {
+    position: "absolute",
+    bottom: 2,
+    right: 2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: theme.colors.secondary,
+    borderWidth: 2,
+    borderColor: theme.colors.surface,
+  },
+  doctorName: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: "700",
+    textAlign: "center",
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.xs,
+    marginTop: 2,
+  },
+  infoText: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
+    textAlign: "center",
+  },
   buttonRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     width: "100%",
-    marginTop: 8,
-    gap: 8,
+    marginTop: theme.spacing.md,
+    gap: theme.spacing.sm,
   },
-  btn: {
+  detailsButton: {
     flex: 1,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radius.md,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  detailsButtonText: {
+    color: theme.colors.primary,
+    fontWeight: "600",
+    fontSize: theme.fontSize.sm,
+  },
+  bookButton: {
+    flex: 1,
+    borderRadius: theme.radius.md,
+    overflow: "hidden",
+  },
+  bookButtonGradient: {
+    paddingVertical: theme.spacing.sm,
     alignItems: "center",
   },
-  btnText: { color: "#fff", fontWeight: "bold", textAlign: "center" },
-  noData: { textAlign: "center", marginTop: 40, fontSize: 16, color: "#666" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  bookButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: theme.fontSize.sm,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: theme.spacing.xl,
+  },
+  emptyTitle: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: "700",
+    color: theme.colors.text,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
+  },
+  emptyText: {
+    textAlign: "center",
+    fontSize: theme.fontSize.md,
+    color: theme.colors.textSecondary,
+  },
 });
