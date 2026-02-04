@@ -1,5 +1,7 @@
+import { theme } from "@/constants/theme";
 import { db } from "@/firebaseConfig";
 import BackButton from "@/components/BackButton";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { onValue, ref } from "firebase/database";
 import { useEffect, useState } from "react";
@@ -13,6 +15,27 @@ import {
   View,
 } from "react-native";
 import BottomNav from "../ButtonNav/components";
+
+const departmentIcons: { [key: string]: string } = {
+  cardiology: "heart",
+  neurology: "brain",
+  orthopedic: "body",
+  pediatric: "happy",
+  dermatology: "color-palette",
+  gynecology: "female",
+  ophthalmology: "eye",
+  dentistry: "medical",
+  psychiatry: "pulse",
+  default: "medical",
+};
+
+const getDepartmentIcon = (dept: string) => {
+  const key = dept.toLowerCase();
+  for (const [k, v] of Object.entries(departmentIcons)) {
+    if (key.includes(k)) return v;
+  }
+  return departmentIcons.default;
+};
 
 export default function DepartmentScreen() {
   const [departments, setDepartments] = useState<string[]>([]);
@@ -43,7 +66,6 @@ export default function DepartmentScreen() {
     return () => unsubscribe();
   }, []);
 
-  // filter departments based on search text
   const handleSearch = (text: string) => {
     setSearch(text);
     if (text.trim() === "") {
@@ -58,9 +80,9 @@ export default function DepartmentScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#007bff" />
-        <Text>Loading departments...</Text>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={styles.loadingText}>Loading departments...</Text>
       </View>
     );
   }
@@ -69,20 +91,36 @@ export default function DepartmentScreen() {
     <View style={styles.container}>
       <BackButton title="Departments" />
 
-      {/* --- Search Bar --- */}
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search department..."
-        value={search}
-        onChangeText={handleSearch}
-      />
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBar}>
+          <Ionicons name="search" size={20} color={theme.colors.textSecondary} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search departments..."
+            placeholderTextColor={theme.colors.textLight}
+            value={search}
+            onChangeText={handleSearch}
+          />
+          {search.length > 0 && (
+            <TouchableOpacity onPress={() => handleSearch("")}>
+              <Ionicons name="close-circle" size={20} color={theme.colors.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
 
       {filteredDepartments.length === 0 ? (
-        <Text style={styles.noData}>No departments found</Text>
+        <View style={styles.emptyContainer}>
+          <Ionicons name="medical-outline" size={64} color={theme.colors.muted} />
+          <Text style={styles.emptyTitle}>No departments found</Text>
+        </View>
       ) : (
         <FlatList
           data={filteredDepartments}
           keyExtractor={(item, index) => index.toString()}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.card}
@@ -92,49 +130,109 @@ export default function DepartmentScreen() {
                   params: { department: item },
                 })
               }
+              activeOpacity={0.7}
             >
-              <Text style={styles.name}>{item}</Text>
+              <View style={styles.iconContainer}>
+                <Ionicons
+                  name={getDepartmentIcon(item) as any}
+                  size={24}
+                  color={theme.colors.primary}
+                />
+              </View>
+              <View style={styles.cardContent}>
+                <Text style={styles.departmentName}>{item}</Text>
+                <Text style={styles.viewText}>View doctors →</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={22} color={theme.colors.muted} />
             </TouchableOpacity>
           )}
         />
       )}
 
-      {/* --- Bottom Navigation --- */}
       <BottomNav />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f0dedeff", padding: 16 },
-  header: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 12,
-    textAlign: "center",
-    color: "#333",
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: theme.colors.background,
+  },
+  loadingText: {
+    marginTop: theme.spacing.md,
+    fontSize: theme.fontSize.md,
+    color: theme.colors.textSecondary,
+  },
+  searchContainer: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    ...theme.shadow,
   },
   searchInput: {
-    backgroundColor: "#95e09fff",
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#e6a7a7ff",
+    flex: 1,
+    marginLeft: theme.spacing.sm,
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text,
+    paddingVertical: theme.spacing.xs,
+  },
+  listContainer: {
+    paddingHorizontal: theme.spacing.md,
+    paddingBottom: 100,
   },
   card: {
-    backgroundColor: "#e0c5c5ff",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    elevation: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.lg,
+    marginBottom: theme.spacing.sm,
+    ...theme.shadow,
   },
-  name: { fontSize: 18, fontWeight: "600", color: "#007bff" },
-  noData: {
-    textAlign: "center",
-    marginTop: 40,
-    fontSize: 16,
-    color: "#666",
+  iconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: theme.colors.background,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: theme.spacing.md,
   },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  cardContent: {
+    flex: 1,
+  },
+  departmentName: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: "600",
+    color: theme.colors.text,
+  },
+  viewText: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.primary,
+    marginTop: 2,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyTitle: {
+    fontSize: theme.fontSize.lg,
+    color: theme.colors.textSecondary,
+    marginTop: theme.spacing.md,
+  },
 });

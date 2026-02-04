@@ -1,11 +1,15 @@
+import { theme } from "@/constants/theme";
 import { auth, db } from "@/firebaseConfig";
 import BackButton from "@/components/BackButton";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
 import { onValue, push, ref, set } from "firebase/database";
 import { useEffect, useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,7 +19,7 @@ import {
 } from "react-native";
 
 export default function BookingScreen() {
-  const { uid } = useLocalSearchParams(); // doctorId
+  const { uid } = useLocalSearchParams();
   const [doctor, setDoctor] = useState<any>(null);
 
   const [patientName, setPatientName] = useState("");
@@ -23,8 +27,8 @@ export default function BookingScreen() {
   const [age, setAge] = useState("");
   const [email, setEmail] = useState("");
   const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Fetch doctor info
   useEffect(() => {
     if (!uid) return;
     const doctorRef = ref(db, `doctors/${uid}`);
@@ -37,10 +41,11 @@ export default function BookingScreen() {
     const emailToUse = email.trim() || auth.currentUser?.email || "";
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!patientName || !phone || !age || !reason || !emailToUse || !emailRegex.test(emailToUse)) {
-      Alert.alert("Error", "Please fill all fields before submitting.");
+      Alert.alert("Error", "Please fill all fields with valid information.");
       return;
     }
     try {
+      setLoading(true);
       const bookingRef = ref(db, `bookings/${uid}`);
       const newBookingRef = push(bookingRef);
       await set(newBookingRef, {
@@ -51,8 +56,9 @@ export default function BookingScreen() {
         email: emailToUse,
         doctorName: doctor?.name ?? "",
         status: "pending",
+        createdAt: new Date().toISOString(),
       });
-      Alert.alert("Success", "Booking sent to doctor!");
+      Alert.alert("Success", "Your appointment request has been sent!");
       setPatientName("");
       setPhone("");
       setAge("");
@@ -60,6 +66,8 @@ export default function BookingScreen() {
       setReason("");
     } catch (error: any) {
       Alert.alert("Error", error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -70,106 +78,259 @@ export default function BookingScreen() {
   const allFilled = patientName && phone && age && reason && (email.trim() || auth.currentUser?.email);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f8f9fa' }}>
+    <View style={styles.container}>
       <BackButton title="Book Appointment" />
-      <ScrollView contentContainerStyle={styles.container}>
-        {/* Doctor Card */}
-        {doctor && (
-          <View style={styles.doctorCard}>
-            <View style={styles.docHeader}>
-              <MaterialIcons name="medical-services" size={28} color="#1a237e" />
-              <Text style={styles.docName}>Dr. {doctor.name}</Text>
-            </View>
-            <Text style={styles.docInfo}>🏥 {doctor.hospital}</Text>
-            <Text style={styles.docInfo}>🩺 {doctor.department}</Text>
-          </View>
-        )}
 
-        {/* Input Fields */}
-        <TextInput
-          placeholder="Patient Name"
-          style={styles.input}
-          value={patientName}
-          onChangeText={setPatientName}
-        />
-        <TextInput
-          placeholder="Patient Email"
-          style={styles.input}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
-        />
-        <TextInput
-          placeholder="Phone Number"
-          style={styles.input}
-          keyboardType="numeric"
-          value={phone}
-          onChangeText={(val) => handleNumericInput(val, setPhone)}
-        />
-        <TextInput
-          placeholder="Age"
-          style={styles.input}
-          keyboardType="numeric"
-          value={age}
-          onChangeText={(val) => handleNumericInput(val, setAge)}
-        />
-        <TextInput
-          placeholder="Reason / Illness"
-          style={[styles.input, { height: 100 }]}
-          multiline
-          value={reason}
-          onChangeText={setReason}
-        />
-
-        {/* Submit Button */}
-        <TouchableOpacity
-          style={[
-            styles.button,
-            { backgroundColor: allFilled ? "#1e88e5" : "#aaa" },
-          ]}
-          disabled={!allFilled}
-          onPress={handleSubmit}
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.btnText}>Submit Booking</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          {/* Doctor Card */}
+          {doctor && (
+            <View style={styles.doctorCard}>
+              <View style={styles.doctorIconContainer}>
+                <Ionicons name="medical" size={28} color={theme.colors.primary} />
+              </View>
+              <View style={styles.doctorInfo}>
+                <Text style={styles.doctorName}>Dr. {doctor.name}</Text>
+                <View style={styles.doctorDetail}>
+                  <Ionicons name="business-outline" size={14} color={theme.colors.textSecondary} />
+                  <Text style={styles.doctorDetailText}>{doctor.hospital}</Text>
+                </View>
+                <View style={styles.doctorDetail}>
+                  <Ionicons name="medical-outline" size={14} color={theme.colors.textSecondary} />
+                  <Text style={styles.doctorDetailText}>{doctor.department}</Text>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* Form Fields */}
+          <View style={styles.formSection}>
+            <Text style={styles.sectionTitle}>Patient Information</Text>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Full Name *</Text>
+              <View style={styles.inputContainer}>
+                <Ionicons name="person-outline" size={20} color={theme.colors.textSecondary} />
+                <TextInput
+                  placeholder="Enter patient name"
+                  placeholderTextColor={theme.colors.textLight}
+                  style={styles.input}
+                  value={patientName}
+                  onChangeText={setPatientName}
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Email Address *</Text>
+              <View style={styles.inputContainer}>
+                <Ionicons name="mail-outline" size={20} color={theme.colors.textSecondary} />
+                <TextInput
+                  placeholder="Enter email"
+                  placeholderTextColor={theme.colors.textLight}
+                  style={styles.input}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={email}
+                  onChangeText={setEmail}
+                />
+              </View>
+            </View>
+
+            <View style={styles.rowInputs}>
+              <View style={[styles.inputGroup, { flex: 1, marginRight: theme.spacing.sm }]}>
+                <Text style={styles.inputLabel}>Phone *</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="call-outline" size={20} color={theme.colors.textSecondary} />
+                  <TextInput
+                    placeholder="Phone number"
+                    placeholderTextColor={theme.colors.textLight}
+                    style={styles.input}
+                    keyboardType="numeric"
+                    value={phone}
+                    onChangeText={(val) => handleNumericInput(val, setPhone)}
+                  />
+                </View>
+              </View>
+
+              <View style={[styles.inputGroup, { flex: 1 }]}>
+                <Text style={styles.inputLabel}>Age *</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="calendar-outline" size={20} color={theme.colors.textSecondary} />
+                  <TextInput
+                    placeholder="Age"
+                    placeholderTextColor={theme.colors.textLight}
+                    style={styles.input}
+                    keyboardType="numeric"
+                    value={age}
+                    onChangeText={(val) => handleNumericInput(val, setAge)}
+                  />
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Reason / Symptoms *</Text>
+              <View style={[styles.inputContainer, styles.textAreaContainer]}>
+                <TextInput
+                  placeholder="Describe your symptoms or reason for visit..."
+                  placeholderTextColor={theme.colors.textLight}
+                  style={[styles.input, styles.textArea]}
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                  value={reason}
+                  onChangeText={setReason}
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Submit Button */}
+          <TouchableOpacity
+            style={[styles.submitButton, (!allFilled || loading) && styles.submitButtonDisabled]}
+            disabled={!allFilled || loading}
+            onPress={handleSubmit}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={allFilled && !loading ? theme.colors.gradientSecondary : ['#d1d5db', '#9ca3af']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.submitButtonGradient}
+            >
+              <Ionicons name="calendar-outline" size={22} color="#fff" />
+              <Text style={styles.submitButtonText}>
+                {loading ? "Submitting..." : "Submit Booking"}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, flexGrow: 1, backgroundColor: "#77abd6ff" },
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: theme.spacing.md,
+    paddingBottom: theme.spacing.xxl,
+  },
   doctorCard: {
-    backgroundColor: "#e6dbdbff",
-    padding: 18,
-    borderRadius: 16,
-    marginBottom: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.lg,
+    borderRadius: theme.radius.lg,
+    marginBottom: theme.spacing.lg,
+    ...theme.shadow,
+  },
+  doctorIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: theme.colors.background,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: theme.spacing.md,
+  },
+  doctorInfo: {
+    flex: 1,
+  },
+  doctorName: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: "700",
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
+  },
+  doctorDetail: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.xs,
+    marginTop: 2,
+  },
+  doctorDetailText: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
+  },
+  formSection: {
+    marginBottom: theme.spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: "700",
+    color: theme.colors.text,
+    marginBottom: theme.spacing.md,
+  },
+  inputGroup: {
+    marginBottom: theme.spacing.md,
+  },
+  inputLabel: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: "600",
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.md,
+    paddingHorizontal: theme.spacing.md,
     borderWidth: 1,
-    borderColor: "#f8acacff",
-    elevation: 3,
+    borderColor: theme.colors.border,
   },
-  docHeader: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
-  docName: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginLeft: 8,
-    color: "#1a237e",
+  textAreaContainer: {
+    alignItems: "flex-start",
+    paddingTop: theme.spacing.md,
   },
-  docInfo: { fontSize: 16, color: "#555", marginBottom: 4 },
   input: {
-    backgroundColor: "#b8d4e0ff",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "#6fc1c4ff",
+    flex: 1,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.sm,
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text,
   },
-  button: { padding: 14, borderRadius: 8, marginTop: 10 },
-  btnText: {
+  textArea: {
+    height: 100,
+    paddingTop: 0,
+  },
+  rowInputs: {
+    flexDirection: "row",
+  },
+  submitButton: {
+    borderRadius: theme.radius.lg,
+    overflow: "hidden",
+    marginTop: theme.spacing.md,
+    ...theme.shadowLarge,
+  },
+  submitButtonDisabled: {
+    opacity: 0.7,
+  },
+  submitButtonGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: theme.spacing.lg,
+    gap: theme.spacing.sm,
+  },
+  submitButtonText: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: "700",
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "center",
   },
 });
