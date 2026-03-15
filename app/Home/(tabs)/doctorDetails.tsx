@@ -6,7 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, router } from "expo-router";
 import { get, ref } from "firebase/database";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView,  Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 export default function DoctorDetails() {
   const { uid } = useLocalSearchParams();
@@ -44,18 +44,18 @@ export default function DoctorDetails() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View className="flex-1 items-center justify-center bg-slate-50">
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Loading doctor details...</Text>
+        <Text className="mt-4 text-base text-blue-600">Loading doctor details...</Text>
       </View>
     );
   }
 
   if (!doctor) {
     return (
-      <View style={styles.loadingContainer}>
+      <View className="flex-1 items-center justify-center bg-slate-50">
         <Ionicons name="alert-circle-outline" size={64} color={theme.colors.error} />
-        <Text style={styles.errorText}>Doctor not found</Text>
+        <Text className="mt-4 text-lg text-rose-500">Doctor not found</Text>
       </View>
     );
   }
@@ -73,55 +73,55 @@ export default function DoctorDetails() {
   ];
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-slate-50">
       <BackButton title="Doctor Details" />
 
       <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        className="flex-1"
+        contentContainerClassName="pb-24"
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Header */}
-        <View style={styles.profileSection}>
-          <View style={styles.avatarContainer}>
+        <View className="mx-4 mt-4 items-center rounded-3xl bg-white px-6 py-8 shadow">
+          <View className="relative mb-4">
             <Image
               source={{ uri: doctor.photoURL || "https://cdn-icons-png.flaticon.com/512/3774/3774299.png" }}
-              style={styles.avatar}
+              className="h-[120px] w-[120px] rounded-full border-4 border-blue-100"
             />
             <View style={[
-              styles.statusIndicator,
+              { position: "absolute", bottom: 8, right: 8, width: 20, height: 20, borderRadius: 10, borderWidth: 3, borderColor: theme.colors.surface },
               { backgroundColor: doctor.status === 'active' ? theme.colors.success : theme.colors.warning }
             ]} />
           </View>
 
-          <Text style={styles.doctorName}>{doctor.name}</Text>
-          <Text style={styles.doctorDegree}>{doctor.degree}</Text>
+          <Text className="mb-1 text-3xl font-bold text-slate-800">{doctor.name}</Text>
+          <Text className="mb-4 text-base text-slate-500">{doctor.degree}</Text>
 
-          <View style={styles.tagContainer}>
-            <View style={styles.tag}>
+          <View className="flex-row flex-wrap justify-center gap-2">
+            <View className="flex-row items-center gap-1 rounded-full bg-slate-50 px-4 py-2">
               <Ionicons name="medical-outline" size={14} color={theme.colors.primary} />
-              <Text style={styles.tagText}>{doctor.department}</Text>
+              <Text className="text-sm font-semibold text-blue-600">{doctor.department}</Text>
             </View>
-            <View style={styles.tag}>
+            <View className="flex-row items-center gap-1 rounded-full bg-slate-50 px-4 py-2">
               <Ionicons name="business-outline" size={14} color={theme.colors.secondary} />
-              <Text style={[styles.tagText, { color: theme.colors.secondary }]}>{doctor.hospital}</Text>
+              <Text style={{ color: theme.colors.secondary }} className="text-sm font-semibold">{doctor.hospital}</Text>
             </View>
           </View>
         </View>
 
         {/* Info Cards */}
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Information</Text>
+        <View className="p-4">
+          <Text className="mb-4 ml-1 text-2xl font-bold text-slate-800">Information</Text>
 
           {infoFields.map((field, index) => (
             field.value && (
-              <View key={index} style={styles.infoCard}>
-                <View style={styles.infoIconContainer}>
+              <View key={index} className="mb-2 flex-row items-center rounded-xl bg-white p-4 shadow">
+                <View className="mr-4 h-11 w-11 items-center justify-center rounded-full bg-slate-50">
                   <Ionicons name={field.icon as any} size={22} color={theme.colors.primary} />
                 </View>
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>{field.label}</Text>
-                  <Text style={styles.infoValue}>{field.value}</Text>
+                <View className="flex-1">
+                  <Text className="mb-0.5 text-sm text-slate-500">{field.label}</Text>
+                  <Text className="text-base font-semibold text-slate-800">{field.value}</Text>
                 </View>
               </View>
             )
@@ -130,7 +130,7 @@ export default function DoctorDetails() {
 
         {/* Book Appointment Button */}
         <TouchableOpacity
-          style={styles.bookButton}
+          className="mx-4 my-6 overflow-hidden rounded-2xl shadow-lg"
           onPress={() =>
             router.push({
               pathname: "/Booking/booking",
@@ -148,164 +148,13 @@ export default function DoctorDetails() {
             colors={theme.colors.gradientSecondary}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={styles.bookButtonGradient}
+            className="flex-row items-center justify-center gap-2 py-5"
           >
             <Ionicons name="calendar-outline" size={22} color="#fff" />
-            <Text style={styles.bookButtonText}>Book Appointment</Text>
+            <Text className="text-lg font-bold text-white">Book Appointment</Text>
           </LinearGradient>
         </TouchableOpacity>
       </ScrollView>
     </View>
   );
 }
-
-const styles = {
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: theme.colors.background,
-  },
-  loadingText: {
-    marginTop: theme.spacing.md,
-    fontSize: theme.fontSize.md,
-    color: theme.colors.primary,
-  },
-  errorText: {
-    marginTop: theme.spacing.md,
-    fontSize: theme.fontSize.lg,
-    color: theme.colors.error,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 100, // Extra padding to account for BottomNav
-  },
-  profileSection: {
-    alignItems: "center",
-    paddingVertical: theme.spacing.xl,
-    paddingHorizontal: theme.spacing.lg,
-    backgroundColor: theme.colors.surface,
-    marginHorizontal: theme.spacing.md,
-    marginTop: theme.spacing.md,
-    borderRadius: theme.radius.xl,
-    ...theme.shadow,
-  },
-  avatarContainer: {
-    position: "relative",
-    marginBottom: theme.spacing.md,
-  },
-  avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 4,
-    borderColor: theme.colors.primaryLight,
-  },
-  statusIndicator: {
-    position: "absolute",
-    bottom: 8,
-    right: 8,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 3,
-    borderColor: theme.colors.surface,
-  },
-  doctorName: {
-    fontSize: theme.fontSize.xxl,
-    fontWeight: "700",
-    color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
-  },
-  doctorDegree: {
-    fontSize: theme.fontSize.md,
-    color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.md,
-  },
-  tagContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: theme.spacing.sm,
-  },
-  tag: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.background,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.radius.full,
-    gap: theme.spacing.xs,
-  },
-  tagText: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: "600",
-    color: theme.colors.primary,
-  },
-  infoSection: {
-    padding: theme.spacing.md,
-  },
-  sectionTitle: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: "700",
-    color: theme.colors.text,
-    marginBottom: theme.spacing.md,
-    marginLeft: theme.spacing.xs,
-  },
-  infoCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    padding: theme.spacing.md,
-    borderRadius: theme.radius.md,
-    marginBottom: theme.spacing.sm,
-    ...theme.shadow,
-  },
-  infoIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: theme.colors.background,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: theme.spacing.md,
-  },
-  infoContent: {
-    flex: 1,
-  },
-  infoLabel: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.textSecondary,
-    marginBottom: 2,
-  },
-  infoValue: {
-    fontSize: theme.fontSize.md,
-    fontWeight: "600",
-    color: theme.colors.text,
-  },
-  bookButton: {
-    marginHorizontal: theme.spacing.md,
-    marginVertical: theme.spacing.lg,
-    borderRadius: theme.radius.lg,
-    overflow: "hidden",
-    ...theme.shadowLarge,
-  },
-  bookButtonGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: theme.spacing.lg,
-    gap: theme.spacing.sm,
-  },
-  bookButtonText: {
-    fontSize: theme.fontSize.lg,
-    fontWeight: "700",
-    color: "#fff",
-  },
-} as const;

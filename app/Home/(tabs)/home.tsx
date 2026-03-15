@@ -65,39 +65,39 @@ export default function HomeScreen() {
   }, [search, doctors]);
 
   const renderDoctorCard = ({ item }: { item: any }) => (
-    <View style={[styles.card, numColumns > 1 && { width: `${100 / numColumns - 2}%` }]}>
-      <View style={styles.cardHeader}>
+    <View className="mb-4 overflow-hidden rounded-2xl bg-white shadow" style={numColumns > 1 ? { width: `${100 / numColumns - 2}%` } : undefined}>
+      <View className="relative items-center pt-6">
         <Image
           source={{ uri: item.photoURL || defaultLogo }}
-          style={styles.avatar}
+          className="h-20 w-20 rounded-full border-2 border-blue-100"
         />
-        <View style={styles.statusBadge}>
-          <View style={[styles.statusDot, { backgroundColor: item.status === 'active' ? theme.colors.success : theme.colors.warning }]} />
+        <View className="absolute bottom-0 right-[35%] rounded-full bg-white p-1">
+          <View className="h-3 w-3 rounded-full" style={{ backgroundColor: item.status === 'active' ? theme.colors.success : theme.colors.warning }} />
         </View>
       </View>
 
-      <View style={styles.cardContent}>
-        <Text style={styles.doctorName} numberOfLines={1}>{item.name}</Text>
+      <View className="items-center p-4">
+        <Text className="mb-2 text-lg font-bold text-slate-800" numberOfLines={1}>{item.name}</Text>
 
-        <View style={styles.infoRow}>
+        <View className="mb-1 flex-row items-center gap-1">
           <Ionicons name="school-outline" size={14} color={theme.colors.textSecondary} />
-          <Text style={styles.infoText} numberOfLines={1}>{item.degree}</Text>
+          <Text className="text-sm text-slate-500" numberOfLines={1}>{item.degree}</Text>
         </View>
 
-        <View style={styles.infoRow}>
+        <View className="mb-1 flex-row items-center gap-1">
           <Ionicons name="medical-outline" size={14} color={theme.colors.primary} />
-          <Text style={styles.departmentText} numberOfLines={1}>{item.department}</Text>
+          <Text className="text-sm font-semibold text-blue-600" numberOfLines={1}>{item.department}</Text>
         </View>
 
-        <View style={styles.infoRow}>
+        <View className="mb-1 flex-row items-center gap-1">
           <Ionicons name="business-outline" size={14} color={theme.colors.textSecondary} />
-          <Text style={styles.infoText} numberOfLines={1}>{item.hospital}</Text>
+          <Text className="text-sm text-slate-500" numberOfLines={1}>{item.hospital}</Text>
         </View>
       </View>
 
-      <View style={styles.cardActions}>
+      <View className="flex-row border-t border-slate-200">
         <TouchableOpacity
-          style={styles.detailsButton}
+          className="flex-1 flex-row items-center justify-center gap-1 py-4"
           onPress={() =>
             router.push({
               pathname: "/Home/(tabs)/doctorDetails",
@@ -107,11 +107,11 @@ export default function HomeScreen() {
           activeOpacity={0.7}
         >
           <Ionicons name="information-circle-outline" size={18} color={theme.colors.primary} />
-          <Text style={styles.detailsButtonText}>Details</Text>
+          <Text className="text-sm font-semibold text-blue-600">Details</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.bookingButton}
+          className="flex-1"
           onPress={() =>
             router.push({
               pathname: "/Booking/booking",
@@ -129,10 +129,10 @@ export default function HomeScreen() {
             colors={theme.colors.gradientSecondary}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={styles.bookingButtonGradient}
+            className="flex-row items-center justify-center gap-1 py-4"
           >
             <Ionicons name="calendar-outline" size={16} color="#fff" />
-            <Text style={styles.bookingButtonText}>Book</Text>
+            <Text className="text-sm font-semibold text-white">Book</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -141,15 +141,15 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View className="flex-1 items-center justify-center bg-slate-50">
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Loading doctors...</Text>
+        <Text className="mt-4 text-base text-slate-500">Loading doctors...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-slate-50">
       <StatusBar barStyle="light-content" backgroundColor={theme.colors.primary} />
 
       {/* Header */}
@@ -157,19 +157,20 @@ export default function HomeScreen() {
         colors={theme.colors.gradientPrimary}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.header}
+        className="rounded-b-3xl px-6 pb-6"
+        style={{ paddingTop: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 10 }}
       >
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Find Your Doctor</Text>
-          <Text style={styles.headerSubtitle}>{doctors.length} doctors available</Text>
+        <View className="mb-6">
+          <Text className="text-3xl font-bold text-white">Find Your Doctor</Text>
+          <Text className="mt-1 text-base text-white/80">{doctors.length} doctors available</Text>
         </View>
 
         {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <View style={styles.searchBar}>
+        <View className="mt-2">
+          <View className="flex-row items-center rounded-2xl bg-white px-4 py-3 shadow">
             <Ionicons name="search" size={20} color={theme.colors.textSecondary} />
             <TextInput
-              style={styles.searchInput}
+              className="flex-1 px-2 text-base text-slate-800"
               placeholder="Search doctors, departments..."
               placeholderTextColor={theme.colors.textLight}
               value={search}
@@ -186,10 +187,10 @@ export default function HomeScreen() {
 
       {/* Doctor List */}
       {filteredDoctors.length === 0 ? (
-        <View style={styles.emptyContainer}>
+        <View className="flex-1 items-center justify-center px-10">
           <Ionicons name="search-outline" size={64} color={theme.colors.muted} />
-          <Text style={styles.emptyTitle}>No doctors found</Text>
-          <Text style={styles.emptyText}>Try searching with different keywords</Text>
+          <Text className="mt-6 text-2xl font-semibold text-slate-800">No doctors found</Text>
+          <Text className="mt-2 text-center text-base text-slate-500">Try searching with different keywords</Text>
         </View>
       ) : (
         <FlatList
@@ -197,8 +198,8 @@ export default function HomeScreen() {
           numColumns={numColumns}
           key={numColumns}
           keyExtractor={(item: any, index) => item.uid || index.toString()}
-          contentContainerStyle={styles.listContainer}
-          columnWrapperStyle={numColumns > 1 ? styles.columnWrapper : undefined}
+          contentContainerClassName="p-4 pb-32"
+          columnWrapperStyle={numColumns > 1 ? { justifyContent: "space-between" } : undefined}
           renderItem={renderDoctorCard}
           showsVerticalScrollIndicator={false}
         />
@@ -206,7 +207,7 @@ export default function HomeScreen() {
 
       {/* Floating AI Chat Button */}
       <TouchableOpacity
-        style={styles.aiChatButton}
+        className="absolute bottom-[100px] right-6 z-[100]"
         onPress={() => router.push("/Home/(tabs)/aiChat")}
         activeOpacity={0.9}
       >
@@ -214,11 +215,11 @@ export default function HomeScreen() {
           colors={theme.colors.gradientAccent}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.aiChatGradient}
+          className="h-[60px] w-[60px] items-center justify-center rounded-full"
         >
           <MaterialCommunityIcons name="robot-happy-outline" size={26} color="#fff" />
         </LinearGradient>
-        <View style={styles.aiChatBadge}>
+        <View className="absolute right-0 top-0 h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-amber-500">
           <Ionicons name="sparkles" size={10} color="#fff" />
         </View>
       </TouchableOpacity>
@@ -227,203 +228,3 @@ export default function HomeScreen() {
     </View>
   );
 }
-
-const styles = {
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: theme.colors.background,
-  },
-  loadingText: {
-    marginTop: theme.spacing.md,
-    fontSize: theme.fontSize.md,
-    color: theme.colors.textSecondary,
-  },
-  header: {
-    paddingTop: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 10,
-    paddingBottom: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.lg,
-    borderBottomLeftRadius: theme.radius.xl,
-    borderBottomRightRadius: theme.radius.xl,
-  },
-  headerContent: {
-    marginBottom: theme.spacing.lg,
-  },
-  headerTitle: {
-    fontSize: theme.fontSize.xxl,
-    fontWeight: "700",
-    color: "#fff",
-  },
-  headerSubtitle: {
-    fontSize: theme.fontSize.md,
-    color: "rgba(255,255,255,0.8)",
-    marginTop: theme.spacing.xs,
-  },
-  searchContainer: {
-    marginTop: theme.spacing.sm,
-  },
-  searchBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.lg,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    ...theme.shadow,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: theme.spacing.sm,
-    fontSize: theme.fontSize.md,
-    color: theme.colors.text,
-    paddingVertical: theme.spacing.xs,
-  },
-  listContainer: {
-    padding: theme.spacing.md,
-    paddingBottom: 120,
-  },
-  columnWrapper: {
-    justifyContent: "space-between",
-  },
-  card: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.lg,
-    marginBottom: theme.spacing.md,
-    overflow: "hidden",
-    ...theme.shadow,
-  },
-  cardHeader: {
-    alignItems: "center",
-    paddingTop: theme.spacing.lg,
-    position: "relative",
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 3,
-    borderColor: theme.colors.primaryLight,
-  },
-  statusBadge: {
-    position: "absolute",
-    bottom: 0,
-    right: "35%",
-    backgroundColor: theme.colors.surface,
-    borderRadius: 10,
-    padding: 3,
-  },
-  statusDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  cardContent: {
-    padding: theme.spacing.md,
-    alignItems: "center",
-  },
-  doctorName: {
-    fontSize: theme.fontSize.lg,
-    fontWeight: "700",
-    color: theme.colors.text,
-    marginBottom: theme.spacing.sm,
-    textAlign: "center",
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: theme.spacing.xs,
-    gap: theme.spacing.xs,
-  },
-  infoText: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.textSecondary,
-  },
-  departmentText: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.primary,
-    fontWeight: "600",
-  },
-  cardActions: {
-    flexDirection: "row",
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
-  },
-  detailsButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: theme.spacing.md,
-    gap: theme.spacing.xs,
-  },
-  detailsButtonText: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: "600",
-    color: theme.colors.primary,
-  },
-  bookingButton: {
-    flex: 1,
-  },
-  bookingButtonGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: theme.spacing.md,
-    gap: theme.spacing.xs,
-  },
-  bookingButtonText: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: "600",
-    color: "#fff",
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: theme.spacing.xl,
-  },
-  emptyTitle: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: "600",
-    color: theme.colors.text,
-    marginTop: theme.spacing.lg,
-  },
-  emptyText: {
-    fontSize: theme.fontSize.md,
-    color: theme.colors.textSecondary,
-    marginTop: theme.spacing.sm,
-    textAlign: "center",
-  },
-  aiChatButton: {
-    position: "absolute",
-    right: theme.spacing.lg,
-    bottom: 100,
-    zIndex: 100,
-  },
-  aiChatGradient: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-    ...theme.shadowLarge,
-  },
-  aiChatBadge: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: theme.colors.warning,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: theme.colors.surface,
-  },
-} as const;
