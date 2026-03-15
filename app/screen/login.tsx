@@ -5,7 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from 'expo-router';
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StatusBar,  Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -67,67 +67,68 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-slate-50">
       <StatusBar barStyle="light-content" backgroundColor={theme.colors.primary} />
 
       <LinearGradient
         colors={theme.colors.gradientPrimary}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.headerGradient}
+        className="rounded-b-3xl px-6 pb-10"
+        style={{ paddingTop: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 10 }}
       >
         <TouchableOpacity
-          style={styles.backButton}
+          className="mb-6 h-11 w-11 items-center justify-center rounded-full bg-white/20"
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
           <Ionicons name="chevron-back" size={26} color="#fff" />
         </TouchableOpacity>
 
-        <View style={styles.headerContent}>
-          <View style={styles.iconContainer}>
+        <View className="items-center">
+          <View className="mb-4 h-20 w-20 items-center justify-center rounded-full bg-white/20">
             <Ionicons name="medical" size={40} color="#fff" />
           </View>
-          <Text style={styles.headerTitle}>Welcome Back</Text>
-          <Text style={styles.headerSubtitle}>Sign in to continue</Text>
+          <Text className="text-4xl font-bold text-white">Welcome Back</Text>
+          <Text className="mt-1 text-base text-white/80">Sign in to continue</Text>
         </View>
       </LinearGradient>
 
       <KeyboardAvoidingView
-        style={styles.formContainer}
+        className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerClassName="px-6 pt-8"
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Email Address</Text>
-            <View style={styles.inputContainer}>
+          <View className="mb-6">
+            <Text className="mb-2 text-base font-semibold text-slate-800">Email Address</Text>
+            <View className="flex-row items-center rounded-xl border border-slate-200 bg-white px-4 shadow-sm">
               <Ionicons name="mail-outline" size={20} color={theme.colors.textSecondary} />
               <TextInput
                 placeholder="Enter your email"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
-                style={styles.input}
+                className="flex-1 px-2 py-4 text-base text-slate-800"
                 autoCapitalize="none"
                 placeholderTextColor={theme.colors.textLight}
               />
             </View>
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Password</Text>
-            <View style={styles.inputContainer}>
+          <View className="mb-6">
+            <Text className="mb-2 text-base font-semibold text-slate-800">Password</Text>
+            <View className="flex-row items-center rounded-xl border border-slate-200 bg-white px-4 shadow-sm">
               <Ionicons name="lock-closed-outline" size={20} color={theme.colors.textSecondary} />
               <TextInput
                 placeholder="Enter your password"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
-                style={styles.input}
+                className="flex-1 px-2 py-4 text-base text-slate-800"
                 placeholderTextColor={theme.colors.textLight}
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
@@ -140,14 +141,14 @@ export default function LoginScreen() {
             </View>
           </View>
 
-          <TouchableOpacity onPress={handleForgotPassword} style={styles.forgotPasswordContainer}>
+          <TouchableOpacity onPress={handleForgotPassword} className="mb-8 flex-row items-center justify-end gap-1">
             <Ionicons name="key-outline" size={16} color={theme.colors.primary} />
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            <Text className="text-sm font-semibold text-blue-600">Forgot Password?</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={handleLogin}
-            style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+            className={`overflow-hidden rounded-xl ${loading ? "opacity-70" : ""}`}
             disabled={loading}
             activeOpacity={0.8}
           >
@@ -155,31 +156,31 @@ export default function LoginScreen() {
               colors={theme.colors.gradientPrimary}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={styles.loginButtonGradient}
+              className="flex-row items-center justify-center gap-2 py-4"
             >
               {loading ? (
-                <Text style={styles.loginButtonText}>Signing in...</Text>
+                <Text className="text-lg font-bold text-white">Signing in...</Text>
               ) : (
                 <>
-                  <Text style={styles.loginButtonText}>Sign In</Text>
+                  <Text className="text-lg font-bold text-white">Sign In</Text>
                   <Ionicons name="arrow-forward" size={20} color="#fff" />
                 </>
               )}
             </LinearGradient>
           </TouchableOpacity>
 
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.dividerLine} />
+          <View className="my-8 flex-row items-center">
+            <View className="h-px flex-1 bg-slate-200" />
+            <Text className="px-4 text-sm text-slate-500">or</Text>
+            <View className="h-px flex-1 bg-slate-200" />
           </View>
 
           <TouchableOpacity
-            style={styles.signupLink}
+            className="items-center py-4"
             onPress={() => router.push('/screen/signup')}
           >
-            <Text style={styles.signupText}>
-              Don't have an account? <Text style={styles.signupTextBold}>Sign up</Text>
+            <Text className="text-base text-slate-500">
+              Don't have an account? <Text className="font-bold text-blue-600">Sign up</Text>
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -187,140 +188,3 @@ export default function LoginScreen() {
     </View>
   );
 }
-
-const styles = {
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  headerGradient: {
-    paddingTop: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 10,
-    paddingBottom: theme.spacing.xxl,
-    paddingHorizontal: theme.spacing.lg,
-    borderBottomLeftRadius: theme.radius.xl,
-    borderBottomRightRadius: theme.radius.xl,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: theme.spacing.lg,
-  },
-  headerContent: {
-    alignItems: 'center',
-  },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: theme.spacing.md,
-  },
-  headerTitle: {
-    fontSize: theme.fontSize.xxxl,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  headerSubtitle: {
-    fontSize: theme.fontSize.md,
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: theme.spacing.xs,
-  },
-  formContainer: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: theme.spacing.lg,
-    paddingTop: theme.spacing.xl,
-  },
-  inputGroup: {
-    marginBottom: theme.spacing.lg,
-  },
-  inputLabel: {
-    fontSize: theme.fontSize.md,
-    fontWeight: '600',
-    color: theme.colors.text,
-    marginBottom: theme.spacing.sm,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.md,
-    paddingHorizontal: theme.spacing.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    ...theme.shadow,
-  },
-  input: {
-    flex: 1,
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.sm,
-    fontSize: theme.fontSize.md,
-    color: theme.colors.text,
-  },
-  forgotPasswordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    marginBottom: theme.spacing.xl,
-    gap: theme.spacing.xs,
-  },
-  forgotPasswordText: {
-    color: theme.colors.primary,
-    fontSize: theme.fontSize.sm,
-    fontWeight: '600',
-  },
-  loginButton: {
-    borderRadius: theme.radius.md,
-    overflow: 'hidden',
-    ...theme.shadowLarge,
-  },
-  loginButtonDisabled: {
-    opacity: 0.7,
-  },
-  loginButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: theme.spacing.md,
-    gap: theme.spacing.sm,
-  },
-  loginButtonText: {
-    color: '#fff',
-    fontSize: theme.fontSize.lg,
-    fontWeight: '700',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: theme.spacing.xl,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: theme.colors.border,
-  },
-  dividerText: {
-    paddingHorizontal: theme.spacing.md,
-    color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.sm,
-  },
-  signupLink: {
-    alignItems: 'center',
-    paddingVertical: theme.spacing.md,
-  },
-  signupText: {
-    fontSize: theme.fontSize.md,
-    color: theme.colors.textSecondary,
-  },
-  signupTextBold: {
-    color: theme.colors.primary,
-    fontWeight: '700',
-  },
-} as const;

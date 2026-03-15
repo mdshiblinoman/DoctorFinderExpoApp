@@ -62,51 +62,51 @@ export default function DoctorHome() {
   };
 
   const InfoRow = ({ icon, label, value }: { icon: string; label: string; value: string }) => (
-    <View style={styles.infoRow}>
-      <View style={styles.infoIconContainer}>
+    <View className="flex-row items-center border-b border-slate-200 py-3">
+      <View className="mr-4 h-10 w-10 items-center justify-center rounded-full bg-slate-50">
         <Ionicons name={icon as any} size={20} color={theme.colors.primary} />
       </View>
-      <View style={styles.infoContent}>
-        <Text style={styles.infoLabel}>{label}</Text>
-        <Text style={styles.infoValue}>{value || "Not provided"}</Text>
+      <View className="flex-1">
+        <Text className="mb-0.5 text-xs text-slate-500">{label}</Text>
+        <Text className="text-base font-semibold text-slate-800">{value || "Not provided"}</Text>
       </View>
     </View>
   );
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-slate-50">
       <BackButton title="My Profile" />
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerClassName="flex-grow px-4 pt-4 pb-28"
         showsVerticalScrollIndicator={false}
       >
         {loading ? (
-          <View style={styles.center}>
+          <View className="mt-20 flex-1 items-center justify-center">
             <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text style={styles.loadingText}>Loading your profile...</Text>
+            <Text className="mt-4 text-base text-slate-500">Loading your profile...</Text>
           </View>
         ) : doctor ? (
           <>
             {/* Profile Header */}
-            <View style={styles.profileHeader}>
+            <View className="mb-6 items-center">
               <LinearGradient
                 colors={theme.colors.gradientPrimary}
-                style={styles.avatarGradient}
+                className="mb-4 h-[100px] w-[100px] items-center justify-center rounded-full"
               >
-                <Text style={styles.avatarText}>
+                <Text className="text-[40px] font-bold text-white">
                   {doctor.name?.charAt(0)?.toUpperCase() || "D"}
                 </Text>
               </LinearGradient>
-              <Text style={styles.doctorName}>Dr. {doctor.name}</Text>
-              <View style={styles.statusBadge}>
-                <View style={styles.statusDot} />
-                <Text style={styles.statusText}>Active</Text>
+              <Text className="mb-1 text-3xl font-bold text-slate-800">Dr. {doctor.name}</Text>
+              <View className="flex-row items-center rounded-full bg-emerald-100 px-4 py-1">
+                <View className="mr-1.5 h-2 w-2 rounded-full bg-emerald-500" />
+                <Text className="text-sm font-semibold text-emerald-600">Active</Text>
               </View>
             </View>
 
             {/* Info Card */}
-            <View style={styles.infoCard}>
-              <Text style={styles.sectionTitle}>Personal Information</Text>
+            <View className="mb-6 rounded-2xl bg-white p-5 shadow">
+              <Text className="mb-4 text-lg font-bold text-slate-800">Personal Information</Text>
               <InfoRow icon="mail-outline" label="Email" value={doctor.email} />
               <InfoRow icon="call-outline" label="Phone" value={doctor.phone} />
               <InfoRow icon="medical-outline" label="Department" value={doctor.department} />
@@ -117,9 +117,9 @@ export default function DoctorHome() {
             </View>
 
             {/* Action Buttons */}
-            <View style={styles.actionsContainer}>
+            <View className="gap-2">
               <TouchableOpacity
-                style={styles.actionButton}
+                className="overflow-hidden rounded-2xl shadow"
                 onPress={() =>
                   router.push({
                     pathname: "/Doctor/editDoctor",
@@ -130,15 +130,15 @@ export default function DoctorHome() {
               >
                 <LinearGradient
                   colors={theme.colors.gradientPrimary}
-                  style={styles.actionButtonGradient}
+                  className="flex-row items-center justify-center gap-2 py-4"
                 >
                   <Ionicons name="create-outline" size={20} color="#fff" />
-                  <Text style={styles.actionButtonText}>Edit Profile</Text>
+                  <Text className="text-base font-bold text-white">Edit Profile</Text>
                 </LinearGradient>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.actionButton}
+                className="overflow-hidden rounded-2xl shadow"
                 onPress={() =>
                   router.push({
                     pathname: "/Doctor/booking",
@@ -149,27 +149,27 @@ export default function DoctorHome() {
               >
                 <LinearGradient
                   colors={theme.colors.gradientSecondary}
-                  style={styles.actionButtonGradient}
+                  className="flex-row items-center justify-center gap-2 py-4"
                 >
                   <Ionicons name="calendar-outline" size={20} color="#fff" />
-                  <Text style={styles.actionButtonText}>View Bookings</Text>
+                  <Text className="text-base font-bold text-white">View Bookings</Text>
                 </LinearGradient>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.deleteButton}
+                className="mt-2 flex-row items-center justify-center gap-2 rounded-2xl border border-rose-500 py-4"
                 onPress={handleDelete}
                 activeOpacity={0.8}
               >
                 <Ionicons name="trash-outline" size={20} color={theme.colors.error} />
-                <Text style={styles.deleteButtonText}>Delete Account</Text>
+                <Text className="text-base font-semibold text-rose-500">Delete Account</Text>
               </TouchableOpacity>
             </View>
           </>
         ) : (
-          <View style={styles.center}>
+          <View className="mt-20 flex-1 items-center justify-center">
             <Ionicons name="alert-circle-outline" size={48} color={theme.colors.textSecondary} />
-            <Text style={styles.emptyText}>No doctor information found.</Text>
+            <Text className="mt-4 text-base text-slate-500">No doctor information found.</Text>
           </View>
         )}
       </ScrollView>
@@ -178,154 +178,3 @@ export default function DoctorHome() {
     </View>
   );
 }
-
-const styles = {
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 120,
-    paddingHorizontal: theme.spacing.md,
-    paddingTop: theme.spacing.md,
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 80,
-  },
-  loadingText: {
-    marginTop: theme.spacing.md,
-    fontSize: theme.fontSize.md,
-    color: theme.colors.textSecondary,
-  },
-  emptyText: {
-    marginTop: theme.spacing.md,
-    fontSize: theme.fontSize.md,
-    color: theme.colors.textSecondary,
-  },
-  profileHeader: {
-    alignItems: "center",
-    marginBottom: theme.spacing.lg,
-  },
-  avatarGradient: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: theme.spacing.md,
-    ...theme.shadowLarge,
-  },
-  avatarText: {
-    fontSize: 40,
-    fontWeight: "700",
-    color: "#fff",
-  },
-  doctorName: {
-    fontSize: theme.fontSize.xxl,
-    fontWeight: "700",
-    color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#dcfce7",
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.radius.full,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: theme.colors.secondary,
-    marginRight: theme.spacing.xs,
-  },
-  statusText: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: "600",
-    color: theme.colors.secondary,
-  },
-  infoCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.lg,
-    padding: theme.spacing.lg,
-    marginBottom: theme.spacing.lg,
-    ...theme.shadow,
-  },
-  sectionTitle: {
-    fontSize: theme.fontSize.lg,
-    fontWeight: "700",
-    color: theme.colors.text,
-    marginBottom: theme.spacing.md,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: theme.spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
-  },
-  infoIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.background,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: theme.spacing.md,
-  },
-  infoContent: {
-    flex: 1,
-  },
-  infoLabel: {
-    fontSize: theme.fontSize.xs,
-    color: theme.colors.textSecondary,
-    marginBottom: 2,
-  },
-  infoValue: {
-    fontSize: theme.fontSize.md,
-    fontWeight: "600",
-    color: theme.colors.text,
-  },
-  actionsContainer: {
-    gap: theme.spacing.sm,
-  },
-  actionButton: {
-    borderRadius: theme.radius.lg,
-    overflow: "hidden",
-    ...theme.shadow,
-  },
-  actionButtonGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: theme.spacing.md,
-    gap: theme.spacing.sm,
-  },
-  actionButtonText: {
-    fontSize: theme.fontSize.md,
-    fontWeight: "700",
-    color: "#fff",
-  },
-  deleteButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: theme.spacing.md,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    borderColor: theme.colors.error,
-    gap: theme.spacing.sm,
-    marginTop: theme.spacing.sm,
-  },
-  deleteButtonText: {
-    fontSize: theme.fontSize.md,
-    fontWeight: "600",
-    color: theme.colors.error,
-  },
-} as const;

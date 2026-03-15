@@ -145,18 +145,18 @@ export default function DoctorEdit() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
+      <View className="flex-1 items-center justify-center bg-slate-50">
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Loading doctor details...</Text>
+        <Text className="mt-4 text-base text-slate-500">Loading doctor details...</Text>
       </View>
     );
   }
 
   if (!doctor) {
     return (
-      <View style={styles.center}>
+      <View className="flex-1 items-center justify-center bg-slate-50">
         <Ionicons name="alert-circle-outline" size={48} color={theme.colors.textSecondary} />
-        <Text style={styles.loadingText}>No doctor found</Text>
+        <Text className="mt-4 text-base text-slate-500">No doctor found</Text>
       </View>
     );
   }
@@ -187,42 +187,36 @@ export default function DoctorEdit() {
   ];
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-slate-50">
       <BackButton title="Edit Profile" />
       <KeyboardAvoidingView
-        style={styles.keyboardView}
+        className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerClassName="px-4 pb-16"
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.sectionTitle}>Editable Fields</Text>
-          <Text style={styles.sectionSubtitle}>Update your profile information below</Text>
+          <Text className="mb-1 text-2xl font-bold text-slate-800">Editable Fields</Text>
+          <Text className="mb-6 text-sm text-slate-500">Update your profile information below</Text>
 
           {Object.keys(form).map((key) => {
             const isReadOnly = readOnlyFields.includes(key);
             return (
-              <View key={key} style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>
+              <View key={key} className="mb-4">
+                <Text className="mb-1 text-sm font-semibold text-slate-800">
                   {fieldLabels[key]}
-                  {isReadOnly && <Text style={styles.readOnlyBadge}> (Read-only)</Text>}
+                  {isReadOnly && <Text className="text-xs font-normal text-slate-400"> (Read-only)</Text>}
                 </Text>
-                <View style={[
-                  styles.inputContainer,
-                  isReadOnly && styles.inputContainerReadOnly
-                ]}>
+                <View className="flex-row items-center rounded-xl border px-4" style={{ backgroundColor: isReadOnly ? theme.colors.background : theme.colors.surface, borderColor: theme.colors.border }}>
                   <Ionicons
                     name={fieldIcons[key] as any || "document-text-outline"}
                     size={20}
                     color={isReadOnly ? theme.colors.textLight : theme.colors.textSecondary}
                   />
                   <TextInput
-                    style={[
-                      styles.input,
-                      isReadOnly && styles.inputReadOnly,
-                    ]}
+                    className={`flex-1 px-2 py-4 text-base ${isReadOnly ? "text-slate-500" : "text-slate-800"}`}
                     value={form[key]}
                     onChangeText={(val) => handleChange(key, val)}
                     placeholder={`Enter ${fieldLabels[key]}`}
@@ -238,7 +232,7 @@ export default function DoctorEdit() {
           })}
 
           <TouchableOpacity
-            style={[styles.updateButton, saving && styles.updateButtonDisabled]}
+            className={`mt-6 overflow-hidden rounded-2xl shadow-lg ${saving ? "opacity-70" : ""}`}
             onPress={handleUpdate}
             disabled={saving}
             activeOpacity={0.8}
@@ -247,10 +241,10 @@ export default function DoctorEdit() {
               colors={theme.colors.gradientPrimary}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={styles.updateButtonGradient}
+              className="flex-row items-center justify-center gap-2 py-5"
             >
               <Ionicons name="checkmark-circle-outline" size={22} color="#fff" />
-              <Text style={styles.updateButtonText}>
+              <Text className="text-lg font-bold text-white">
                 {saving ? "Saving..." : "Save Changes"}
               </Text>
             </LinearGradient>
@@ -260,97 +254,3 @@ export default function DoctorEdit() {
     </View>
   );
 }
-
-const styles = {
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: theme.spacing.md,
-    paddingBottom: theme.spacing.xxl,
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: theme.colors.background,
-  },
-  loadingText: {
-    marginTop: theme.spacing.md,
-    fontSize: theme.fontSize.md,
-    color: theme.colors.textSecondary,
-  },
-  sectionTitle: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: "700",
-    color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
-  },
-  sectionSubtitle: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.lg,
-  },
-  inputGroup: {
-    marginBottom: theme.spacing.md,
-  },
-  inputLabel: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: "600",
-    color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
-  },
-  readOnlyBadge: {
-    fontSize: theme.fontSize.xs,
-    color: theme.colors.textLight,
-    fontWeight: "400",
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.md,
-    paddingHorizontal: theme.spacing.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  inputContainerReadOnly: {
-    backgroundColor: theme.colors.background,
-    borderColor: theme.colors.border,
-  },
-  input: {
-    flex: 1,
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.sm,
-    fontSize: theme.fontSize.md,
-    color: theme.colors.text,
-  },
-  inputReadOnly: {
-    color: theme.colors.textSecondary,
-  },
-  updateButton: {
-    borderRadius: theme.radius.lg,
-    overflow: "hidden",
-    marginTop: theme.spacing.lg,
-    ...theme.shadowLarge,
-  },
-  updateButtonDisabled: {
-    opacity: 0.7,
-  },
-  updateButtonGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: theme.spacing.lg,
-    gap: theme.spacing.sm,
-  },
-  updateButtonText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: theme.fontSize.lg,
-  },
-} as const;

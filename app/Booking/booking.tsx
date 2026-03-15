@@ -77,64 +77,64 @@ export default function BookingScreen() {
   const allFilled = patientName && phone && age && reason && (email.trim() || auth.currentUser?.email);
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-slate-50">
       <BackButton title="Book Appointment" />
 
       <KeyboardAvoidingView
-        style={styles.keyboardView}
+        className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerClassName="px-4 pb-16"
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           {/* Doctor Card */}
           {doctor && (
-            <View style={styles.doctorCard}>
-              <View style={styles.doctorIconContainer}>
+            <View className="mb-6 flex-row items-center rounded-2xl bg-white p-5 shadow">
+              <View className="mr-4 h-14 w-14 items-center justify-center rounded-full bg-slate-50">
                 <Ionicons name="medical" size={28} color={theme.colors.primary} />
               </View>
-              <View style={styles.doctorInfo}>
-                <Text style={styles.doctorName}>Dr. {doctor.name}</Text>
-                <View style={styles.doctorDetail}>
+              <View className="flex-1">
+                <Text className="mb-1 text-2xl font-bold text-slate-800">Dr. {doctor.name}</Text>
+                <View className="mt-0.5 flex-row items-center gap-1">
                   <Ionicons name="business-outline" size={14} color={theme.colors.textSecondary} />
-                  <Text style={styles.doctorDetailText}>{doctor.hospital}</Text>
+                  <Text className="text-sm text-slate-500">{doctor.hospital}</Text>
                 </View>
-                <View style={styles.doctorDetail}>
+                <View className="mt-0.5 flex-row items-center gap-1">
                   <Ionicons name="medical-outline" size={14} color={theme.colors.textSecondary} />
-                  <Text style={styles.doctorDetailText}>{doctor.department}</Text>
+                  <Text className="text-sm text-slate-500">{doctor.department}</Text>
                 </View>
               </View>
             </View>
           )}
 
           {/* Form Fields */}
-          <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>Patient Information</Text>
+          <View className="mb-6">
+            <Text className="mb-4 text-2xl font-bold text-slate-800">Patient Information</Text>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Full Name *</Text>
-              <View style={styles.inputContainer}>
+            <View className="mb-4">
+              <Text className="mb-1 text-sm font-semibold text-slate-800">Full Name *</Text>
+              <View className="flex-row items-center rounded-xl border border-slate-200 bg-white px-4">
                 <Ionicons name="person-outline" size={20} color={theme.colors.textSecondary} />
                 <TextInput
                   placeholder="Enter patient name"
                   placeholderTextColor={theme.colors.textLight}
-                  style={styles.input}
+                  className="flex-1 px-2 py-4 text-base text-slate-800"
                   value={patientName}
                   onChangeText={setPatientName}
                 />
               </View>
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Email Address *</Text>
-              <View style={styles.inputContainer}>
+            <View className="mb-4">
+              <Text className="mb-1 text-sm font-semibold text-slate-800">Email Address *</Text>
+              <View className="flex-row items-center rounded-xl border border-slate-200 bg-white px-4">
                 <Ionicons name="mail-outline" size={20} color={theme.colors.textSecondary} />
                 <TextInput
                   placeholder="Enter email"
                   placeholderTextColor={theme.colors.textLight}
-                  style={styles.input}
+                  className="flex-1 px-2 py-4 text-base text-slate-800"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   value={email}
@@ -143,15 +143,15 @@ export default function BookingScreen() {
               </View>
             </View>
 
-            <View style={styles.rowInputs}>
-              <View style={[styles.inputGroup, { flex: 1, marginRight: theme.spacing.sm }]}>
-                <Text style={styles.inputLabel}>Phone *</Text>
-                <View style={styles.inputContainer}>
+            <View className="flex-row">
+              <View className="mb-4 mr-2 flex-1">
+                <Text className="mb-1 text-sm font-semibold text-slate-800">Phone *</Text>
+                <View className="flex-row items-center rounded-xl border border-slate-200 bg-white px-4">
                   <Ionicons name="call-outline" size={20} color={theme.colors.textSecondary} />
                   <TextInput
                     placeholder="Phone number"
                     placeholderTextColor={theme.colors.textLight}
-                    style={styles.input}
+                    className="flex-1 px-2 py-4 text-base text-slate-800"
                     keyboardType="numeric"
                     value={phone}
                     onChangeText={(val) => handleNumericInput(val, setPhone)}
@@ -159,14 +159,14 @@ export default function BookingScreen() {
                 </View>
               </View>
 
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={styles.inputLabel}>Age *</Text>
-                <View style={styles.inputContainer}>
+              <View className="mb-4 flex-1">
+                <Text className="mb-1 text-sm font-semibold text-slate-800">Age *</Text>
+                <View className="flex-row items-center rounded-xl border border-slate-200 bg-white px-4">
                   <Ionicons name="calendar-outline" size={20} color={theme.colors.textSecondary} />
                   <TextInput
                     placeholder="Age"
                     placeholderTextColor={theme.colors.textLight}
-                    style={styles.input}
+                    className="flex-1 px-2 py-4 text-base text-slate-800"
                     keyboardType="numeric"
                     value={age}
                     onChangeText={(val) => handleNumericInput(val, setAge)}
@@ -175,13 +175,13 @@ export default function BookingScreen() {
               </View>
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Reason / Symptoms *</Text>
-              <View style={[styles.inputContainer, styles.textAreaContainer]}>
+            <View className="mb-4">
+              <Text className="mb-1 text-sm font-semibold text-slate-800">Reason / Symptoms *</Text>
+              <View className="rounded-xl border border-slate-200 bg-white px-4 pt-4">
                 <TextInput
                   placeholder="Describe your symptoms or reason for visit..."
                   placeholderTextColor={theme.colors.textLight}
-                  style={[styles.input, styles.textArea]}
+                  className="h-24 px-2 pb-4 text-base text-slate-800"
                   multiline
                   numberOfLines={4}
                   textAlignVertical="top"
@@ -194,7 +194,7 @@ export default function BookingScreen() {
 
           {/* Submit Button */}
           <TouchableOpacity
-            style={[styles.submitButton, (!allFilled || loading) && styles.submitButtonDisabled]}
+            className={`mt-4 overflow-hidden rounded-2xl shadow-lg ${(!allFilled || loading) ? "opacity-70" : ""}`}
             disabled={!allFilled || loading}
             onPress={handleSubmit}
             activeOpacity={0.8}
@@ -203,10 +203,10 @@ export default function BookingScreen() {
               colors={allFilled && !loading ? theme.colors.gradientSecondary : ['#d1d5db', '#9ca3af']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={styles.submitButtonGradient}
+              className="flex-row items-center justify-center gap-2 py-5"
             >
               <Ionicons name="calendar-outline" size={22} color="#fff" />
-              <Text style={styles.submitButtonText}>
+              <Text className="text-lg font-bold text-white">
                 {loading ? "Submitting..." : "Submit Booking"}
               </Text>
             </LinearGradient>
@@ -216,120 +216,3 @@ export default function BookingScreen() {
     </View>
   );
 }
-
-const styles = {
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: theme.spacing.md,
-    paddingBottom: theme.spacing.xxl,
-  },
-  doctorCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    padding: theme.spacing.lg,
-    borderRadius: theme.radius.lg,
-    marginBottom: theme.spacing.lg,
-    ...theme.shadow,
-  },
-  doctorIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: theme.colors.background,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: theme.spacing.md,
-  },
-  doctorInfo: {
-    flex: 1,
-  },
-  doctorName: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: "700",
-    color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
-  },
-  doctorDetail: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.xs,
-    marginTop: 2,
-  },
-  doctorDetailText: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.textSecondary,
-  },
-  formSection: {
-    marginBottom: theme.spacing.lg,
-  },
-  sectionTitle: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: "700",
-    color: theme.colors.text,
-    marginBottom: theme.spacing.md,
-  },
-  inputGroup: {
-    marginBottom: theme.spacing.md,
-  },
-  inputLabel: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: "600",
-    color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.md,
-    paddingHorizontal: theme.spacing.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  textAreaContainer: {
-    alignItems: "flex-start",
-    paddingTop: theme.spacing.md,
-  },
-  input: {
-    flex: 1,
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.sm,
-    fontSize: theme.fontSize.md,
-    color: theme.colors.text,
-  },
-  textArea: {
-    height: 100,
-    paddingTop: 0,
-  },
-  rowInputs: {
-    flexDirection: "row",
-  },
-  submitButton: {
-    borderRadius: theme.radius.lg,
-    overflow: "hidden",
-    marginTop: theme.spacing.md,
-    ...theme.shadowLarge,
-  },
-  submitButtonDisabled: {
-    opacity: 0.7,
-  },
-  submitButtonGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: theme.spacing.lg,
-    gap: theme.spacing.sm,
-  },
-  submitButtonText: {
-    fontSize: theme.fontSize.lg,
-    fontWeight: "700",
-    color: "#fff",
-  },
-} as const;

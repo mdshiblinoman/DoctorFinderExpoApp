@@ -88,94 +88,60 @@ export default function AppointmentDetails() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
+      <View className="flex-1 items-center justify-center">
         <ActivityIndicator size="large" color="#007bff" />
-        <Text>Loading appointment...</Text>
+        <Text className="mt-2 text-base text-gray-700">Loading appointment...</Text>
       </View>
     );
   }
 
   if (!booking) {
     return (
-      <View style={styles.center}>
-        <Text>No appointment found.</Text>
+      <View className="flex-1 items-center justify-center">
+        <Text className="text-base text-gray-700">No appointment found.</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-[#9adbc2] p-5">
       <BackButton title="Appointment Details" />
 
-      <Text style={styles.label}>Patient Name:</Text>
-      <Text style={styles.value}>{booking.patientName}</Text>
+      <Text className="mt-3 text-lg font-bold text-gray-600">Patient Name:</Text>
+      <Text className="mt-1 text-xl text-[#ce1a29]">{booking.patientName}</Text>
 
-      <Text style={styles.label}>Phone:</Text>
-      <Text style={styles.value}>{booking.phone}</Text>
+      <Text className="mt-3 text-lg font-bold text-gray-600">Phone:</Text>
+      <Text className="mt-1 text-xl text-[#ce1a29]">{booking.phone}</Text>
 
-      <Text style={styles.label}>Age:</Text>
-      <Text style={styles.value}>{booking.age}</Text>
+      <Text className="mt-3 text-lg font-bold text-gray-600">Age:</Text>
+      <Text className="mt-1 text-xl text-[#ce1a29]">{booking.age}</Text>
 
-      <Text style={styles.label}>Reason:</Text>
-      <Text style={styles.value}>{booking.reason}</Text>
+      <Text className="mt-3 text-lg font-bold text-gray-600">Reason:</Text>
+      <Text className="mt-1 text-xl text-[#ce1a29]">{booking.reason}</Text>
 
-      <Text style={styles.label}>Doctor:</Text>
-      <Text style={styles.value}>Dr. {doctorName}</Text>
+      <Text className="mt-3 text-lg font-bold text-gray-600">Doctor:</Text>
+      <Text className="mt-1 text-xl text-[#ce1a29]">Dr. {doctorName}</Text>
 
-      <Text style={styles.label}>Serial Number:</Text>
-      <Text style={styles.value}>{booking.serialNumber}</Text>
+      <Text className="mt-3 text-lg font-bold text-gray-600">Serial Number:</Text>
+      <Text className="mt-1 text-xl text-[#ce1a29]">{booking.serialNumber}</Text>
 
-      <Text style={styles.label}>Appointment Time:</Text>
-      <Text style={styles.value}>{booking.appointmentTime}</Text>
+      <Text className="mt-3 text-lg font-bold text-gray-600">Appointment Time:</Text>
+      <Text className="mt-1 text-xl text-[#ce1a29]">{booking.appointmentTime}</Text>
 
       <TextInput
-        style={styles.input}
+        className="mt-3 rounded-lg border border-gray-300 bg-white px-3 py-3 text-base text-gray-800"
         placeholder="Enter appointment time"
         value={appointmentTimeInput}
         onChangeText={setAppointmentTimeInput}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleSaveTime}>
-        <Text style={styles.btnText}>Save Time</Text>
+      <TouchableOpacity className="mt-3 rounded-lg bg-[#2aa043] px-3 py-3.5" onPress={handleSaveTime}>
+        <Text className="text-center text-base font-bold text-black">Save Time</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={handleSendSMS}>
-        <Text style={styles.btnText}>Send SMS</Text>
+      <TouchableOpacity className="mt-3 rounded-lg bg-[#2aa043] px-3 py-3.5" onPress={handleSendSMS}>
+        <Text className="text-center text-base font-bold text-black">Send SMS</Text>
       </TouchableOpacity>
     </View>
   );
 }
-
-const styles = {
-  container: { padding: 20, flex: 1, backgroundColor: "#9adbc2ff" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-    color: "#1a237e",
-  },
-  label: { fontSize: 18, fontWeight: "700", marginTop: 10, color: "#555" },
-  value: { fontSize: 20, color: "#ce1a29ff", marginTop: 2 },
-  input: {
-    marginTop: 10,
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    backgroundColor: "#fff",
-  },
-  button: {
-    marginTop: 10,
-    padding: 14,
-    borderRadius: 8,
-    backgroundColor: "#2aa043ff",
-  },
-  btnText: {
-    color: "#0c0c0cff",
-    fontWeight: "bold",
-    textAlign: "center",
-    fontSize: 16,
-  },
-} as const;
