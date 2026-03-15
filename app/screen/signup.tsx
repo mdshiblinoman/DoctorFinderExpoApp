@@ -22,7 +22,6 @@ import {
   ActivityIndicator,
 } from "react-native";
 
-// Validation error interface
 interface ValidationErrors {
   name?: string;
   phone?: string;
@@ -50,25 +49,21 @@ export default function SignupScreen() {
   const [appointmentTime, setAppointmentTime] = useState("");
   const [place, setPlace] = useState("");
   const [registrationNumber, setRegistrationNumber] = useState("");
-  const [dob, setDob] = useState(""); // YYYY-MM-DD format
+  const [dob, setDob] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Validation states
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
   const [passwordStrength, setPasswordStrength] = useState(0);
 
-  // Date and Time Picker states
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
 
-  // Password visibility states
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // ✅ Calculate password strength
   const calculatePasswordStrength = (pwd: string): number => {
     let strength = 0;
     if (pwd.length >= 6) strength += 1;
@@ -79,7 +74,6 @@ export default function SignupScreen() {
     return strength;
   };
 
-  // ✅ Real-time validation effect
   useEffect(() => {
     setPasswordStrength(calculatePasswordStrength(password));
     validateField("password", password);
@@ -90,7 +84,6 @@ export default function SignupScreen() {
     if (confirmPassword) validateField("confirmPassword", confirmPassword);
   }, [confirmPassword]);
 
-  // ✅ Field validators
   const validateField = (field: string, value: string): string | null => {
     switch (field) {
       case "name":
@@ -98,116 +91,102 @@ export default function SignupScreen() {
         if (value.trim().length < 3) return "Name must be at least 3 characters";
         if (!/^[a-zA-Z\s.]+$/.test(value)) return "Name can only contain letters, spaces and dots";
         return null;
-
       case "phone":
         if (!value) return "Phone number is required";
         if (!/^\d+$/.test(value)) return "Phone must contain only digits";
         if (value.length !== 11) return "Phone number must be exactly 11 digits";
         return null;
-
       case "email":
         if (!value) return "Email is required";
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Please enter a valid email address";
         return null;
-
       case "password":
         if (!value) return "Password is required";
         if (value.length < 6) return "Password must be at least 6 characters";
         if (value.length < 8) return "Tip: Use 8+ characters for a stronger password";
         return null;
-
       case "confirmPassword":
         if (!value) return "Please confirm your password";
         if (value !== password) return "Passwords do not match";
         return null;
-
       case "department":
         if (!value.trim()) return "Department/Specialty is required";
         if (value.trim().length < 2) return "Please enter a valid department";
         return null;
-
       case "hospital":
         if (!value.trim()) return "Hospital/Clinic name is required";
         if (value.trim().length < 3) return "Please enter a valid hospital name";
         return null;
-
       case "degree":
         if (!value.trim()) return "Degree/Qualification is required";
         if (value.trim().length < 2) return "Please enter a valid degree";
         return null;
-
       case "registrationNumber":
         if (!value.trim()) return "BMDC Registration number is required";
         if (value.trim().length < 4) return "Please enter a valid registration number";
         return null;
-
       case "place":
         if (!value.trim()) return "Chamber/Practice location is required";
         if (value.trim().length < 3) return "Please enter a valid location";
         return null;
-
-      case "dob":
+      case "dob": {
         if (!value) return "Date of birth is required";
         const age = calculateAge(value);
         if (age < 18) return "You must be at least 18 years old";
         if (age > 100) return "Please enter a valid date of birth";
         return null;
-
+      }
       case "appointmentTime":
         if (!value) return "Appointment time is required";
         return null;
-
       default:
         return null;
     }
   };
 
-  // ✅ Handle field blur (mark as touched)
   const handleBlur = (field: string, value: string) => {
-    setTouched(prev => ({ ...prev, [field]: true }));
+    setTouched((prev) => ({ ...prev, [field]: true }));
     const error = validateField(field, value);
-    setErrors(prev => ({ ...prev, [field]: error || undefined }));
+    setErrors((prev) => ({ ...prev, [field]: error || undefined }));
   };
 
-  // ✅ Handle field change with real-time validation
   const handleChange = (field: string, value: string, setter: (v: string) => void) => {
     setter(value);
     if (touched[field]) {
       const error = validateField(field, value);
-      setErrors(prev => ({ ...prev, [field]: error || undefined }));
+      setErrors((prev) => ({ ...prev, [field]: error || undefined }));
     }
   };
 
-  // Handle date change
-  const onDateChange = (event: any, date?: Date) => {
+  const onDateChange = (_event: any, date?: Date) => {
     setShowDatePicker(false);
     if (date) {
       setSelectedDate(date);
       const formattedDate = date.toISOString().split("T")[0];
       setDob(formattedDate);
-      setTouched(prev => ({ ...prev, dob: true }));
+      setTouched((prev) => ({ ...prev, dob: true }));
       const error = validateField("dob", formattedDate);
-      setErrors(prev => ({ ...prev, dob: error || undefined }));
+      setErrors((prev) => ({ ...prev, dob: error || undefined }));
     }
   };
 
-  // Handle time change
-  const onTimeChange = (event: any, time?: Date) => {
+  const onTimeChange = (_event: any, time?: Date) => {
     setShowTimePicker(false);
     if (time) {
       setSelectedTime(time);
       const hours = time.getHours();
       const minutes = time.getMinutes();
-      const formattedTime = `${hours > 12 ? hours - 12 : hours === 0 ? 12 : hours}:${minutes.toString().padStart(2, "0")} ${hours >= 12 ? "PM" : "AM"}`;
+      const formattedTime = `${hours > 12 ? hours - 12 : hours === 0 ? 12 : hours}:${minutes
+        .toString()
+        .padStart(2, "0")} ${hours >= 12 ? "PM" : "AM"}`;
       setAppointmentTime(formattedTime);
-      setTouched(prev => ({ ...prev, appointmentTime: true }));
-      setErrors(prev => ({ ...prev, appointmentTime: undefined }));
+      setTouched((prev) => ({ ...prev, appointmentTime: true }));
+      setErrors((prev) => ({ ...prev, appointmentTime: undefined }));
     }
   };
 
-  // ✅ calculate age from DOB
-  const calculateAge = (dob: string) => {
-    const birthDate = new Date(dob);
+  const calculateAge = (dateOfBirth: string) => {
+    const birthDate = new Date(dateOfBirth);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
@@ -217,7 +196,6 @@ export default function SignupScreen() {
     return age;
   };
 
-  // ✅ Input validation
   const validateInputs = () => {
     const newErrors: ValidationErrors = {};
     const fields = [
@@ -235,9 +213,8 @@ export default function SignupScreen() {
       { key: "appointmentTime", value: appointmentTime },
     ];
 
-    // Mark all fields as touched
     const allTouched: { [key: string]: boolean } = {};
-    fields.forEach(f => {
+    fields.forEach((f) => {
       allTouched[f.key] = true;
       const error = validateField(f.key, f.value);
       if (error && !error.startsWith("Tip:")) {
@@ -248,18 +225,28 @@ export default function SignupScreen() {
     setTouched(allTouched);
     setErrors(newErrors);
 
-    // Return first error message or null
     const firstError = Object.values(newErrors)[0];
     return firstError || null;
   };
 
-  // ✅ Check if form is valid
   const isFormValid = () => {
-    const requiredFields = [name, phone, email, password, confirmPassword, department, hospital, degree, registrationNumber, place, dob, appointmentTime];
-    return requiredFields.every(f => f.trim() !== "") && password === confirmPassword && password.length >= 6;
+    const requiredFields = [
+      name,
+      phone,
+      email,
+      password,
+      confirmPassword,
+      department,
+      hospital,
+      degree,
+      registrationNumber,
+      place,
+      dob,
+      appointmentTime,
+    ];
+    return requiredFields.every((f) => f.trim() !== "") && password === confirmPassword && password.length >= 6;
   };
 
-  // ✅ Get password strength label and color
   const getPasswordStrengthInfo = () => {
     if (passwordStrength <= 1) return { label: "Weak", color: "#dc3545" };
     if (passwordStrength <= 2) return { label: "Fair", color: "#fd7e14" };
@@ -268,7 +255,6 @@ export default function SignupScreen() {
     return { label: "Very Strong", color: "#20c997" };
   };
 
-  // ✅ Signup function
   const handleSignup = async () => {
     const errorMessage = validateInputs();
     if (errorMessage) {
@@ -278,17 +264,11 @@ export default function SignupScreen() {
 
     try {
       setLoading(true);
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // calculate age from dob
       const age = calculateAge(dob);
 
-      // Store doctor info in Firebase Realtime DB
       await set(ref(db, "doctors/" + user.uid), {
         uid: user.uid,
         name,
@@ -316,100 +296,81 @@ export default function SignupScreen() {
     }
   };
 
+  const fieldContainerClass = (hasError: boolean) =>
+    `mb-1 flex-row items-center rounded-xl border bg-white px-4 shadow-sm ${hasError ? "border-rose-500 bg-rose-50" : "border-slate-200"}`;
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
-        style={styles.keyboardView}
+        className="flex-1 bg-slate-50"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
         <BackButton title="Sign Up" />
-        <ScrollView
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.header}>
-            <LinearGradient
-              colors={theme.colors.gradientPrimary}
-              style={styles.headerIconContainer}
-            >
+        <ScrollView contentContainerClassName="flex-grow bg-slate-50 px-6 pb-16" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <View className="mb-8 mt-6 items-center">
+            <LinearGradient colors={theme.colors.gradientPrimary} className="mb-4 h-[70px] w-[70px] items-center justify-center rounded-full">
               <Ionicons name="medical" size={32} color="#fff" />
             </LinearGradient>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Sign up as a Doctor</Text>
+            <Text className="mb-1 text-4xl font-bold text-slate-800">Create Account</Text>
+            <Text className="mt-1 text-base text-slate-500">Sign up as a Doctor</Text>
           </View>
 
-          {/* Personal Information Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Personal Information</Text>
+          <View className="mb-6">
+            <Text className="mb-4 pl-1 text-lg font-bold text-slate-800">Personal Information</Text>
 
-            <View style={[styles.inputContainer, touched.name && errors.name && styles.inputError]}>
-              <Ionicons name="person-outline" size={20} color={touched.name && errors.name ? "#dc3545" : "#666"} style={styles.icon} />
+            <View className={fieldContainerClass(!!(touched.name && errors.name))}>
+              <Ionicons name="person-outline" size={20} color={touched.name && errors.name ? "#dc3545" : "#666"} className="mr-2" />
               <TextInput
                 placeholder="Full Name *"
                 value={name}
                 onChangeText={(v) => handleChange("name", v, setName)}
                 onBlur={() => handleBlur("name", name)}
-                style={styles.input}
+                className="flex-1 py-4 text-base text-slate-800"
                 placeholderTextColor="#999"
               />
-              {touched.name && !errors.name && name && (
-                <Ionicons name="checkmark-circle" size={20} color="#28a745" />
-              )}
+              {touched.name && !errors.name && name && <Ionicons name="checkmark-circle" size={20} color="#28a745" />}
             </View>
-            {touched.name && errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+            {touched.name && errors.name && <Text className="mb-3 ml-1 text-xs text-rose-500">{errors.name}</Text>}
 
-            <View style={[styles.inputContainer, touched.phone && errors.phone && styles.inputError]}>
-              <Ionicons name="call-outline" size={20} color={touched.phone && errors.phone ? "#dc3545" : "#666"} style={styles.icon} />
+            <View className={fieldContainerClass(!!(touched.phone && errors.phone))}>
+              <Ionicons name="call-outline" size={20} color={touched.phone && errors.phone ? "#dc3545" : "#666"} className="mr-2" />
               <TextInput
                 placeholder="Phone Number (11 digits) *"
                 value={phone}
                 onChangeText={(v) => handleChange("phone", v.replace(/[^0-9]/g, ""), setPhone)}
                 onBlur={() => handleBlur("phone", phone)}
-                style={styles.input}
+                className="flex-1 py-4 text-base text-slate-800"
                 keyboardType="phone-pad"
                 maxLength={11}
                 placeholderTextColor="#999"
               />
-              {touched.phone && !errors.phone && phone && (
-                <Ionicons name="checkmark-circle" size={20} color="#28a745" />
-              )}
+              {touched.phone && !errors.phone && phone && <Ionicons name="checkmark-circle" size={20} color="#28a745" />}
             </View>
-            {touched.phone && errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
+            {touched.phone && errors.phone && <Text className="mb-3 ml-1 text-xs text-rose-500">{errors.phone}</Text>}
 
-            <View style={[styles.inputContainer, touched.email && errors.email && styles.inputError]}>
-              <Ionicons name="mail-outline" size={20} color={touched.email && errors.email ? "#dc3545" : "#666"} style={styles.icon} />
+            <View className={fieldContainerClass(!!(touched.email && errors.email))}>
+              <Ionicons name="mail-outline" size={20} color={touched.email && errors.email ? "#dc3545" : "#666"} className="mr-2" />
               <TextInput
                 placeholder="Email Address *"
                 value={email}
                 onChangeText={(v) => handleChange("email", v, setEmail)}
                 onBlur={() => handleBlur("email", email)}
-                style={styles.input}
+                className="flex-1 py-4 text-base text-slate-800"
                 keyboardType="email-address"
                 autoCapitalize="none"
                 placeholderTextColor="#999"
               />
-              {touched.email && !errors.email && email && (
-                <Ionicons name="checkmark-circle" size={20} color="#28a745" />
-              )}
+              {touched.email && !errors.email && email && <Ionicons name="checkmark-circle" size={20} color="#28a745" />}
             </View>
-            {touched.email && errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+            {touched.email && errors.email && <Text className="mb-3 ml-1 text-xs text-rose-500">{errors.email}</Text>}
 
-            {/* Date of Birth Picker */}
-            <TouchableOpacity
-              style={[styles.inputContainer, touched.dob && errors.dob && styles.inputError]}
-              onPress={() => setShowDatePicker(true)}
-            >
-              <Ionicons name="calendar-outline" size={20} color={touched.dob && errors.dob ? "#dc3545" : "#666"} style={styles.icon} />
-              <Text style={[styles.input, !dob && styles.pickerText, dob && { color: "#333" }]}>
-                {dob || "Date of Birth *"}
-              </Text>
-              {touched.dob && !errors.dob && dob && (
-                <Ionicons name="checkmark-circle" size={20} color="#28a745" />
-              )}
+            <TouchableOpacity className={fieldContainerClass(!!(touched.dob && errors.dob))} onPress={() => setShowDatePicker(true)}>
+              <Ionicons name="calendar-outline" size={20} color={touched.dob && errors.dob ? "#dc3545" : "#666"} className="mr-2" />
+              <Text className={`flex-1 py-4 text-base ${dob ? "text-slate-800" : "text-slate-400"}`}>{dob || "Date of Birth *"}</Text>
+              {touched.dob && !errors.dob && dob && <Ionicons name="checkmark-circle" size={20} color="#28a745" />}
             </TouchableOpacity>
-            {touched.dob && errors.dob && <Text style={styles.errorText}>{errors.dob}</Text>}
+            {touched.dob && errors.dob && <Text className="mb-3 ml-1 text-xs text-rose-500">{errors.dob}</Text>}
 
             {showDatePicker && (
               <DateTimePicker
@@ -422,171 +383,170 @@ export default function SignupScreen() {
             )}
           </View>
 
-          {/* Account Security Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Account Security</Text>
+          <View className="mb-6">
+            <Text className="mb-4 pl-1 text-lg font-bold text-slate-800">Account Security</Text>
 
-            <View style={[styles.inputContainer, touched.password && errors.password && !errors.password.startsWith("Tip:") && styles.inputError]}>
-              <Ionicons name="lock-closed-outline" size={20} color={touched.password && errors.password && !errors.password.startsWith("Tip:") ? "#dc3545" : "#666"} style={styles.icon} />
+            <View className={fieldContainerClass(!!(touched.password && errors.password && !errors.password.startsWith("Tip:")))}>
+              <Ionicons
+                name="lock-closed-outline"
+                size={20}
+                color={touched.password && errors.password && !errors.password.startsWith("Tip:") ? "#dc3545" : "#666"}
+                className="mr-2"
+              />
               <TextInput
                 placeholder="Password (min 6 characters) *"
                 value={password}
                 onChangeText={(v) => handleChange("password", v, setPassword)}
                 onBlur={() => handleBlur("password", password)}
-                style={styles.input}
+                className="flex-1 py-4 text-base text-slate-800"
                 secureTextEntry={!showPassword}
                 placeholderTextColor="#999"
               />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+              <TouchableOpacity className="mr-1 p-2" onPress={() => setShowPassword(!showPassword)}>
                 <Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color="#666" />
               </TouchableOpacity>
-              {touched.password && !errors.password && password && (
-                <Ionicons name="checkmark-circle" size={20} color="#28a745" />
-              )}
+              {touched.password && !errors.password && password && <Ionicons name="checkmark-circle" size={20} color="#28a745" />}
             </View>
             {touched.password && errors.password && (
-              <Text style={[styles.errorText, errors.password.startsWith("Tip:") && styles.tipText]}>{errors.password}</Text>
+              <Text className={`mb-3 ml-1 text-xs ${errors.password.startsWith("Tip:") ? "text-amber-500" : "text-rose-500"}`}>
+                {errors.password}
+              </Text>
             )}
 
-            {/* Password Strength Indicator */}
             {password.length > 0 && (
-              <View style={styles.strengthContainer}>
-                <View style={styles.strengthBarContainer}>
+              <View className="mb-4 mt-1 flex-row items-center px-1">
+                <View className="mr-2 flex-1 flex-row">
                   {[1, 2, 3, 4, 5].map((level) => (
                     <View
                       key={level}
-                      style={[
-                        styles.strengthBar,
-                        { backgroundColor: level <= passwordStrength ? getPasswordStrengthInfo().color : "#e0e0e0" }
-                      ]}
+                      className="mr-1 h-1 flex-1 rounded"
+                      style={{ backgroundColor: level <= passwordStrength ? getPasswordStrengthInfo().color : "#e0e0e0" }}
                     />
                   ))}
                 </View>
-                <Text style={[styles.strengthText, { color: getPasswordStrengthInfo().color }]}>
+                <Text className="min-w-[70px] text-right text-xs font-semibold" style={{ color: getPasswordStrengthInfo().color }}>
                   {getPasswordStrengthInfo().label}
                 </Text>
               </View>
             )}
 
-            <View style={[styles.inputContainer, touched.confirmPassword && errors.confirmPassword && styles.inputError]}>
-              <Ionicons name="lock-closed-outline" size={20} color={touched.confirmPassword && errors.confirmPassword ? "#dc3545" : "#666"} style={styles.icon} />
+            <View className={fieldContainerClass(!!(touched.confirmPassword && errors.confirmPassword))}>
+              <Ionicons name="lock-closed-outline" size={20} color={touched.confirmPassword && errors.confirmPassword ? "#dc3545" : "#666"} className="mr-2" />
               <TextInput
                 placeholder="Confirm Password *"
                 value={confirmPassword}
                 onChangeText={(v) => handleChange("confirmPassword", v, setConfirmPassword)}
                 onBlur={() => handleBlur("confirmPassword", confirmPassword)}
-                style={styles.input}
+                className="flex-1 py-4 text-base text-slate-800"
                 secureTextEntry={!showConfirmPassword}
                 placeholderTextColor="#999"
               />
-              <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeIcon}>
+              <TouchableOpacity className="mr-1 p-2" onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
                 <Ionicons name={showConfirmPassword ? "eye-outline" : "eye-off-outline"} size={20} color="#666" />
               </TouchableOpacity>
               {touched.confirmPassword && !errors.confirmPassword && confirmPassword && (
                 <Ionicons name="checkmark-circle" size={20} color="#28a745" />
               )}
             </View>
-            {touched.confirmPassword && errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
+            {touched.confirmPassword && errors.confirmPassword && (
+              <Text className="mb-3 ml-1 text-xs text-rose-500">{errors.confirmPassword}</Text>
+            )}
           </View>
 
-          {/* Professional Information Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Professional Information</Text>
+          <View className="mb-6">
+            <Text className="mb-4 pl-1 text-lg font-bold text-slate-800">Professional Information</Text>
 
-            <View style={[styles.inputContainer, touched.department && errors.department && styles.inputError]}>
-              <Ionicons name="medical-outline" size={20} color={touched.department && errors.department ? "#dc3545" : "#666"} style={styles.icon} />
+            <View className={fieldContainerClass(!!(touched.department && errors.department))}>
+              <Ionicons name="medical-outline" size={20} color={touched.department && errors.department ? "#dc3545" : "#666"} className="mr-2" />
               <TextInput
                 placeholder="Department/Specialty *"
                 value={department}
                 onChangeText={(v) => handleChange("department", v, setDepartment)}
                 onBlur={() => handleBlur("department", department)}
-                style={styles.input}
+                className="flex-1 py-4 text-base text-slate-800"
                 placeholderTextColor="#999"
               />
-              {touched.department && !errors.department && department && (
-                <Ionicons name="checkmark-circle" size={20} color="#28a745" />
-              )}
+              {touched.department && !errors.department && department && <Ionicons name="checkmark-circle" size={20} color="#28a745" />}
             </View>
-            {touched.department && errors.department && <Text style={styles.errorText}>{errors.department}</Text>}
+            {touched.department && errors.department && <Text className="mb-3 ml-1 text-xs text-rose-500">{errors.department}</Text>}
 
-            <View style={[styles.inputContainer, touched.hospital && errors.hospital && styles.inputError]}>
-              <Ionicons name="business-outline" size={20} color={touched.hospital && errors.hospital ? "#dc3545" : "#666"} style={styles.icon} />
+            <View className={fieldContainerClass(!!(touched.hospital && errors.hospital))}>
+              <Ionicons name="business-outline" size={20} color={touched.hospital && errors.hospital ? "#dc3545" : "#666"} className="mr-2" />
               <TextInput
                 placeholder="Hospital/Clinic Name *"
                 value={hospital}
                 onChangeText={(v) => handleChange("hospital", v, setHospital)}
                 onBlur={() => handleBlur("hospital", hospital)}
-                style={styles.input}
+                className="flex-1 py-4 text-base text-slate-800"
                 placeholderTextColor="#999"
               />
-              {touched.hospital && !errors.hospital && hospital && (
-                <Ionicons name="checkmark-circle" size={20} color="#28a745" />
-              )}
+              {touched.hospital && !errors.hospital && hospital && <Ionicons name="checkmark-circle" size={20} color="#28a745" />}
             </View>
-            {touched.hospital && errors.hospital && <Text style={styles.errorText}>{errors.hospital}</Text>}
+            {touched.hospital && errors.hospital && <Text className="mb-3 ml-1 text-xs text-rose-500">{errors.hospital}</Text>}
 
-            <View style={[styles.inputContainer, touched.degree && errors.degree && styles.inputError]}>
-              <Ionicons name="school-outline" size={20} color={touched.degree && errors.degree ? "#dc3545" : "#666"} style={styles.icon} />
+            <View className={fieldContainerClass(!!(touched.degree && errors.degree))}>
+              <Ionicons name="school-outline" size={20} color={touched.degree && errors.degree ? "#dc3545" : "#666"} className="mr-2" />
               <TextInput
                 placeholder="Degree/Qualification *"
                 value={degree}
                 onChangeText={(v) => handleChange("degree", v, setDegree)}
                 onBlur={() => handleBlur("degree", degree)}
-                style={styles.input}
+                className="flex-1 py-4 text-base text-slate-800"
                 placeholderTextColor="#999"
               />
-              {touched.degree && !errors.degree && degree && (
-                <Ionicons name="checkmark-circle" size={20} color="#28a745" />
-              )}
+              {touched.degree && !errors.degree && degree && <Ionicons name="checkmark-circle" size={20} color="#28a745" />}
             </View>
-            {touched.degree && errors.degree && <Text style={styles.errorText}>{errors.degree}</Text>}
+            {touched.degree && errors.degree && <Text className="mb-3 ml-1 text-xs text-rose-500">{errors.degree}</Text>}
 
-            <View style={[styles.inputContainer, touched.registrationNumber && errors.registrationNumber && styles.inputError]}>
-              <Ionicons name="card-outline" size={20} color={touched.registrationNumber && errors.registrationNumber ? "#dc3545" : "#666"} style={styles.icon} />
+            <View className={fieldContainerClass(!!(touched.registrationNumber && errors.registrationNumber))}>
+              <Ionicons name="card-outline" size={20} color={touched.registrationNumber && errors.registrationNumber ? "#dc3545" : "#666"} className="mr-2" />
               <TextInput
                 placeholder="BMDC Registration Number *"
                 value={registrationNumber}
                 onChangeText={(v) => handleChange("registrationNumber", v, setRegistrationNumber)}
                 onBlur={() => handleBlur("registrationNumber", registrationNumber)}
-                style={styles.input}
+                className="flex-1 py-4 text-base text-slate-800"
                 placeholderTextColor="#999"
               />
               {touched.registrationNumber && !errors.registrationNumber && registrationNumber && (
                 <Ionicons name="checkmark-circle" size={20} color="#28a745" />
               )}
             </View>
-            {touched.registrationNumber && errors.registrationNumber && <Text style={styles.errorText}>{errors.registrationNumber}</Text>}
+            {touched.registrationNumber && errors.registrationNumber && (
+              <Text className="mb-3 ml-1 text-xs text-rose-500">{errors.registrationNumber}</Text>
+            )}
 
-            <View style={[styles.inputContainer, touched.place && errors.place && styles.inputError]}>
-              <Ionicons name="location-outline" size={20} color={touched.place && errors.place ? "#dc3545" : "#666"} style={styles.icon} />
+            <View className={fieldContainerClass(!!(touched.place && errors.place))}>
+              <Ionicons name="location-outline" size={20} color={touched.place && errors.place ? "#dc3545" : "#666"} className="mr-2" />
               <TextInput
                 placeholder="Chamber/Practice Location *"
                 value={place}
                 onChangeText={(v) => handleChange("place", v, setPlace)}
                 onBlur={() => handleBlur("place", place)}
-                style={styles.input}
+                className="flex-1 py-4 text-base text-slate-800"
                 placeholderTextColor="#999"
               />
-              {touched.place && !errors.place && place && (
-                <Ionicons name="checkmark-circle" size={20} color="#28a745" />
-              )}
+              {touched.place && !errors.place && place && <Ionicons name="checkmark-circle" size={20} color="#28a745" />}
             </View>
-            {touched.place && errors.place && <Text style={styles.errorText}>{errors.place}</Text>}
+            {touched.place && errors.place && <Text className="mb-3 ml-1 text-xs text-rose-500">{errors.place}</Text>}
 
-            {/* Appointment Time Picker */}
-            <TouchableOpacity
-              style={[styles.inputContainer, touched.appointmentTime && errors.appointmentTime && styles.inputError]}
-              onPress={() => setShowTimePicker(true)}
-            >
-              <Ionicons name="time-outline" size={20} color={touched.appointmentTime && errors.appointmentTime ? "#dc3545" : "#666"} style={styles.icon} />
-              <Text style={[styles.input, !appointmentTime && styles.pickerText, appointmentTime && { color: "#333" }]}>
+            <TouchableOpacity className={fieldContainerClass(!!(touched.appointmentTime && errors.appointmentTime))} onPress={() => setShowTimePicker(true)}>
+              <Ionicons
+                name="time-outline"
+                size={20}
+                color={touched.appointmentTime && errors.appointmentTime ? "#dc3545" : "#666"}
+                className="mr-2"
+              />
+              <Text className={`flex-1 py-4 text-base ${appointmentTime ? "text-slate-800" : "text-slate-400"}`}>
                 {appointmentTime || "Appointment Time *"}
               </Text>
               {touched.appointmentTime && !errors.appointmentTime && appointmentTime && (
                 <Ionicons name="checkmark-circle" size={20} color="#28a745" />
               )}
             </TouchableOpacity>
-            {touched.appointmentTime && errors.appointmentTime && <Text style={styles.errorText}>{errors.appointmentTime}</Text>}
+            {touched.appointmentTime && errors.appointmentTime && (
+              <Text className="mb-3 ml-1 text-xs text-rose-500">{errors.appointmentTime}</Text>
+            )}
 
             {showTimePicker && (
               <DateTimePicker
@@ -598,46 +558,34 @@ export default function SignupScreen() {
             )}
           </View>
 
-          {/* Form validation summary */}
-          <View style={styles.requiredNote}>
-            <Text style={styles.requiredNoteText}>* All fields are required</Text>
+          <View className="mb-2 items-center">
+            <Text className="text-sm italic text-slate-500">* All fields are required</Text>
           </View>
 
-          {/* Signup button */}
           <TouchableOpacity
-            style={[
-              styles.signupButton,
-              loading && styles.signupButtonDisabled,
-              !isFormValid() && styles.signupButtonDisabled
-            ]}
+            className={`mb-4 mt-4 overflow-hidden rounded-2xl shadow-lg ${loading || !isFormValid() ? "opacity-80" : ""}`}
             onPress={handleSignup}
             disabled={loading}
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={isFormValid() && !loading ? theme.colors.gradientSecondary : ['#d1d5db', '#9ca3af']}
+              colors={isFormValid() && !loading ? theme.colors.gradientSecondary : ["#d1d5db", "#9ca3af"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={styles.signupButtonGradient}
+              className="flex-row items-center justify-center gap-2 py-5"
             >
               {loading ? (
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
                 <Ionicons name="person-add-outline" size={20} color="#fff" />
               )}
-              <Text style={styles.signupButtonText}>
-                {loading ? "Creating Account..." : "Sign Up"}
-              </Text>
+              <Text className="text-lg font-bold text-white">{loading ? "Creating Account..." : "Sign Up"}</Text>
             </LinearGradient>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.loginLink}
-            onPress={() => router.replace("/screen/login")}
-          >
-            <Text style={styles.loginLinkText}>
-              Already have an account?{" "}
-              <Text style={styles.loginLinkBold}>Login</Text>
+          <TouchableOpacity className="mb-8 items-center py-4" onPress={() => router.replace("/screen/login")}>
+            <Text className="text-base text-slate-500">
+              Already have an account? <Text className="font-semibold text-blue-600">Login</Text>
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -645,279 +593,3 @@ export default function SignupScreen() {
     </TouchableWithoutFeedback>
   );
 }
-
-const styles = {
-  keyboardView: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  container: {
-    flexGrow: 1,
-    padding: theme.spacing.lg,
-    paddingBottom: theme.spacing.xxl,
-    backgroundColor: theme.colors.background,
-  },
-  header: {
-    alignItems: "center",
-    marginTop: theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
-  },
-  headerIconContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: theme.spacing.md,
-    ...theme.shadowLarge,
-  },
-  title: {
-    fontSize: theme.fontSize.xxxl,
-    fontWeight: "700",
-    color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
-  },
-  subtitle: {
-    fontSize: theme.fontSize.md,
-    color: theme.colors.textSecondary,
-    marginTop: theme.spacing.xs,
-  },
-  section: {
-    marginBottom: theme.spacing.lg,
-  },
-  sectionTitle: {
-    fontSize: theme.fontSize.lg,
-    fontWeight: "700",
-    color: theme.colors.text,
-    marginBottom: theme.spacing.md,
-    paddingLeft: theme.spacing.xs,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    paddingHorizontal: theme.spacing.md,
-    marginBottom: theme.spacing.xs,
-    ...theme.shadow,
-  },
-  inputError: {
-    borderColor: theme.colors.error,
-    borderWidth: 1.5,
-    backgroundColor: "#fff5f5",
-  },
-  icon: {
-    marginRight: theme.spacing.sm,
-  },
-  input: {
-    flex: 1,
-    paddingVertical: theme.spacing.md,
-    fontSize: theme.fontSize.md,
-    color: theme.colors.text,
-  },
-  pickerText: {
-    color: theme.colors.textLight,
-  },
-  errorText: {
-    color: theme.colors.error,
-    fontSize: theme.fontSize.xs,
-    marginLeft: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
-    marginTop: 2,
-  },
-  tipText: {
-    color: theme.colors.warning,
-  },
-  strengthContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: theme.spacing.md,
-    marginTop: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.xs,
-  },
-  strengthBarContainer: {
-    flexDirection: "row",
-    flex: 1,
-    marginRight: theme.spacing.sm,
-  },
-  strengthBar: {
-    flex: 1,
-    height: 4,
-    borderRadius: 2,
-    marginRight: theme.spacing.xs,
-  },
-  strengthText: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: "600",
-    minWidth: 70,
-    textAlign: "right",
-  },
-  requiredNote: {
-    alignItems: "center",
-    marginBottom: theme.spacing.sm,
-  },
-  requiredNoteText: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.textSecondary,
-    fontStyle: "italic",
-  },
-  signupButton: {
-    borderRadius: theme.radius.lg,
-    overflow: "hidden",
-    marginTop: theme.spacing.md,
-    marginBottom: theme.spacing.md,
-    ...theme.shadowLarge,
-  },
-  signupButtonDisabled: {
-    opacity: 0.8,
-  },
-  signupButtonGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: theme.spacing.lg,
-    gap: theme.spacing.sm,
-  },
-  signupButtonText: {
-    color: "#fff",
-    fontSize: theme.fontSize.lg,
-    fontWeight: "700",
-  },
-  loginLink: {
-    alignItems: "center",
-    paddingVertical: theme.spacing.md,
-    marginBottom: theme.spacing.lg,
-  },
-  loginLinkText: {
-    fontSize: theme.fontSize.md,
-    color: theme.colors.textSecondary,
-  },
-  loginLinkBold: {
-    color: theme.colors.primary,
-    fontWeight: "600",
-  },
-  eyeIcon: {
-    padding: theme.spacing.sm,
-    marginRight: theme.spacing.xs,
-  },
-  verifyButton: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.radius.sm,
-    backgroundColor: "#e8f4ff",
-  },
-  verifyButtonText: {
-    color: theme.colors.primary,
-    fontSize: theme.fontSize.sm,
-    fontWeight: "600",
-  },
-  verifyButtonDisabled: {
-    color: theme.colors.textLight,
-  },
-  verifiedBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: theme.spacing.sm,
-  },
-  verifiedText: {
-    color: theme.colors.secondary,
-    fontSize: theme.fontSize.xs,
-    fontWeight: "600",
-    marginLeft: theme.spacing.xs,
-  },
-  verifyHintText: {
-    color: theme.colors.warning,
-    fontSize: theme.fontSize.xs,
-    marginLeft: theme.spacing.xs,
-    marginBottom: theme.spacing.sm,
-    marginTop: 2,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: theme.spacing.lg,
-  },
-  modalContent: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.xl,
-    padding: theme.spacing.xl,
-    width: "100%",
-    maxWidth: 350,
-    alignItems: "center",
-  },
-  modalCloseButton: {
-    position: "absolute",
-    top: theme.spacing.md,
-    right: theme.spacing.md,
-    padding: theme.spacing.xs,
-  },
-  modalIcon: {
-    marginBottom: theme.spacing.md,
-  },
-  modalTitle: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: "700",
-    color: theme.colors.text,
-    marginBottom: theme.spacing.sm,
-  },
-  modalSubtitle: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.textSecondary,
-  },
-  modalEmail: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: "600",
-    color: theme.colors.primary,
-    marginBottom: theme.spacing.lg,
-  },
-  otpInputContainer: {
-    width: "100%",
-    marginBottom: theme.spacing.sm,
-  },
-  otpInput: {
-    borderWidth: 2,
-    borderColor: theme.colors.primary,
-    borderRadius: theme.radius.md,
-    padding: theme.spacing.md,
-    fontSize: theme.fontSize.xxl,
-    textAlign: "center",
-    letterSpacing: 10,
-    fontWeight: "bold",
-    color: theme.colors.text,
-  },
-  otpErrorText: {
-    color: theme.colors.error,
-    fontSize: theme.fontSize.sm,
-    marginBottom: theme.spacing.sm,
-  },
-  verifyOtpButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.md,
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.xl,
-    marginTop: theme.spacing.sm,
-    width: "100%",
-  },
-  verifyOtpButtonText: {
-    color: "#fff",
-    fontSize: theme.fontSize.md,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  resendButton: {
-    marginTop: theme.spacing.md,
-    padding: theme.spacing.sm,
-  },
-  resendButtonText: {
-    color: theme.colors.primary,
-    fontSize: theme.fontSize.sm,
-    fontWeight: "500",
-  },
-  resendButtonDisabled: {
-    color: theme.colors.textLight,
-  },
-} as const;
