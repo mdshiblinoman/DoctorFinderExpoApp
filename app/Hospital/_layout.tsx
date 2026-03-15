@@ -2,7 +2,7 @@ import { auth, db } from "@/firebaseConfig";
 import { Slot } from "expo-router";
 import { onValue, ref } from "firebase/database";
 import { useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import BottomNav from "../ButtonNav/components";
 import DoctorBottomNav from "../DoctorBottomNav/doctorComponents";
 
@@ -27,17 +27,10 @@ export default function TabsLayout() {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 relative">
       <Slot />
       {/* Conditional Bottom Nav */}
       {role === "doctor" ? <DoctorBottomNav /> : <BottomNav />}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    position: "relative",
-  },
-});

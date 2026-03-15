@@ -3,7 +3,7 @@ import { auth, db } from "@/firebaseConfig";
 import { router } from "expo-router";
 import { onValue, ref } from "firebase/database";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 export default function BottomNav() {
   const [role, setRole] = useState<string | null>(null);
@@ -22,48 +22,24 @@ export default function BottomNav() {
   }, [uid]);
 
   return (
-    <View style={styles.navBar}>
-      <TouchableOpacity style={styles.navBtn} onPress={() => router.push("/Home/(tabs)/home")}>
-        <Text style={styles.navText}>Home</Text>
+    <View className="flex-row justify-around bg-[#fffefeff] py-3 border-t border-[#fdfcfcff] absolute bottom-0 w-full z-[100]">
+      <TouchableOpacity className="flex-1 items-center" onPress={() => router.push("/Home/(tabs)/home")}>
+        <Text className="text-base font-bold text-[#007bff]">Home</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.navBtn} onPress={() => router.push("/Hospital/hospitals")}>
-        <Text style={styles.navText}>Hospital</Text>
+      <TouchableOpacity className="flex-1 items-center" onPress={() => router.push("/Hospital/hospitals")}>
+        <Text className="text-base font-bold text-[#007bff]">Hospital</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.navBtn} onPress={() => router.push("/Department/department")}>
-        <Text style={styles.navText}>Department</Text>
+      <TouchableOpacity className="flex-1 items-center" onPress={() => router.push("/Department/department")}>
+        <Text className="text-base font-bold text-[#007bff]">Department</Text>
       </TouchableOpacity>
 
       {role === "doctor" && (
-        <TouchableOpacity style={styles.navBtn} onPress={() => router.push("/Doctor/doctorHome")}>
-          <Text style={styles.navText}>Profile</Text>
+        <TouchableOpacity className="flex-1 items-center" onPress={() => router.push("/Doctor/doctorHome")}>
+          <Text className="text-base font-bold text-[#007bff]">Profile</Text>
         </TouchableOpacity>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  navBar: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    backgroundColor: "#fffefeff",
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderColor: "#fdfcfcff",
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
-    zIndex: 100,
-  },
-  navBtn: {
-    flex: 1,
-    alignItems: "center",
-  },
-  navText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#007bff",
-  },
-});
