@@ -6,7 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, router } from "expo-router";
 import { get, ref } from "firebase/database";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, ScrollView,  Text, TouchableOpacity, View } from "react-native";
 
 export default function DoctorDetails() {
   const { uid } = useLocalSearchParams();
@@ -159,7 +159,7 @@ export default function DoctorDetails() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = {
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -308,4 +308,4 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#fff",
   },
-});
+};

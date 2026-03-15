@@ -1,4 +1,3 @@
-// app/hospitalDoctors.tsx
 import { theme } from "@/constants/theme";
 import { db } from "@/firebaseConfig";
 import BackButton from "@/components/BackButton";
@@ -11,7 +10,6 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
-  StyleSheet,
   Text,
   TouchableOpacity,
   useWindowDimensions,
@@ -22,13 +20,11 @@ export default function HospitalDoctors() {
   const { hospital } = useLocalSearchParams();
   const [doctors, setDoctors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
   const { width } = useWindowDimensions();
 
   let numColumns = 1;
   if (width >= 1200) numColumns = 4;
   else if (width >= 768) numColumns = 3;
-  else numColumns = 1;
 
   useEffect(() => {
     const doctorsRef = ref(db, "doctors");
@@ -37,62 +33,59 @@ export default function HospitalDoctors() {
         const data = snapshot.val();
         const filtered = Object.values<any>(data).filter(
           (doc) =>
-            String(doc.hospital ?? "")
-              .trim()
-              .toLowerCase() ===
-            String(hospital ?? "")
-              .trim()
-              .toLowerCase()
+            String(doc.hospital ?? "").trim().toLowerCase() ===
+            String(hospital ?? "").trim().toLowerCase()
         );
         setDoctors(filtered);
-      } else setDoctors([]);
+      } else {
+        setDoctors([]);
+      }
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, [hospital]);
 
-  if (loading)
+  if (loading) {
     return (
-      <View style={styles.center}>
+      <View className="flex-1 items-center justify-center bg-slate-50">
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Loading doctors...</Text>
+        <Text className="mt-4 text-sm text-slate-500">Loading doctors...</Text>
       </View>
     );
+  }
 
   const renderDoctorCard = ({ item }: { item: any }) => (
-    <View style={[styles.card, numColumns > 1 && { width: `${100 / numColumns - 2}%` }]}>
-      <View style={styles.cardHeader}>
+    <View
+      className="bg-white p-6 rounded-2xl mb-4 items-center"
+      style={[theme.shadow, numColumns > 1 ? { width: `${100 / numColumns - 2}%` } : undefined]}
+    >
+      <View className="relative mb-4">
         {item.photoUrl ? (
-          <Image source={{ uri: item.photoUrl }} style={styles.avatar} />
+          <Image source={{ uri: item.photoUrl }} className="w-[70px] h-[70px] rounded-full" />
         ) : (
-          <LinearGradient
-            colors={theme.colors.gradientPrimary}
-            style={styles.avatarPlaceholder}
-          >
-            <Text style={styles.avatarText}>
-              {item.name?.charAt(0)?.toUpperCase() || "D"}
-            </Text>
+          <LinearGradient colors={theme.colors.gradientPrimary} className="w-[70px] h-[70px] rounded-full items-center justify-center">
+            <Text className="text-2xl font-bold text-white">{item.name?.charAt(0)?.toUpperCase() || "D"}</Text>
           </LinearGradient>
         )}
-        <View style={styles.statusIndicator} />
+        <View className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white" />
       </View>
 
-      <Text style={styles.doctorName}>Dr. {item.name}</Text>
+      <Text className="text-base font-bold text-slate-800 text-center mb-1">Dr. {item.name}</Text>
 
-      <View style={styles.infoRow}>
+      <View className="flex-row items-center gap-1 mt-0.5">
         <Ionicons name="school-outline" size={14} color={theme.colors.textSecondary} />
-        <Text style={styles.infoText} numberOfLines={1}>{item.degree}</Text>
+        <Text className="text-xs text-slate-500 text-center" numberOfLines={1}>{item.degree}</Text>
       </View>
 
-      <View style={styles.infoRow}>
+      <View className="flex-row items-center gap-1 mt-0.5">
         <Ionicons name="medical-outline" size={14} color={theme.colors.textSecondary} />
-        <Text style={styles.infoText} numberOfLines={1}>{item.department}</Text>
+        <Text className="text-xs text-slate-500 text-center" numberOfLines={1}>{item.department}</Text>
       </View>
 
-      <View style={styles.buttonRow}>
+      <View className="flex-row w-full mt-4 gap-2">
         <TouchableOpacity
-          style={styles.detailsButton}
+          className="flex-1 py-2 rounded-xl items-center border border-blue-500"
           onPress={() =>
             router.push({
               pathname: "/Home/doctorDetails",
@@ -101,11 +94,11 @@ export default function HospitalDoctors() {
           }
           activeOpacity={0.7}
         >
-          <Text style={styles.detailsButtonText}>Details</Text>
+          <Text className="text-xs font-semibold text-blue-500">Details</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.bookButton}
+          className="flex-1 rounded-xl overflow-hidden"
           onPress={() =>
             router.push({
               pathname: "/Booking/booking",
@@ -119,11 +112,8 @@ export default function HospitalDoctors() {
           }
           activeOpacity={0.8}
         >
-          <LinearGradient
-            colors={theme.colors.gradientSecondary}
-            style={styles.bookButtonGradient}
-          >
-            <Text style={styles.bookButtonText}>Book</Text>
+          <LinearGradient colors={theme.colors.gradientSecondary} className="py-2 items-center">
+            <Text className="text-xs font-semibold text-white">Book</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -131,24 +121,22 @@ export default function HospitalDoctors() {
   );
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-slate-50">
       <BackButton title={`Doctors at ${hospital}`} />
 
       {doctors.length === 0 ? (
-        <View style={styles.emptyContainer}>
+        <View className="flex-1 justify-center items-center p-8">
           <Ionicons name="people-outline" size={60} color={theme.colors.textLight} />
-          <Text style={styles.emptyTitle}>No Doctors Found</Text>
-          <Text style={styles.emptyText}>No doctors are currently available in this hospital</Text>
+          <Text className="text-lg font-bold text-slate-800 mt-4 mb-1">No Doctors Found</Text>
+          <Text className="text-sm text-slate-500 text-center">No doctors are currently available in this hospital</Text>
         </View>
       ) : (
         <FlatList
           data={doctors}
           numColumns={numColumns}
           key={numColumns}
-          columnWrapperStyle={
-            numColumns > 1 ? styles.columnWrapper : undefined
-          }
-          contentContainerStyle={styles.listContent}
+          columnWrapperStyle={numColumns > 1 ? { justifyContent: "space-between" } : undefined}
+          contentContainerStyle={{ padding: theme.spacing.md, paddingBottom: theme.spacing.xxl }}
           keyExtractor={(item: any, index) => item.uid || index.toString()}
           renderItem={renderDoctorCard}
           showsVerticalScrollIndicator={false}
@@ -157,137 +145,3 @@ export default function HospitalDoctors() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: theme.colors.background,
-  },
-  loadingText: {
-    marginTop: theme.spacing.md,
-    fontSize: theme.fontSize.md,
-    color: theme.colors.textSecondary,
-  },
-  listContent: {
-    padding: theme.spacing.md,
-    paddingBottom: theme.spacing.xxl,
-  },
-  columnWrapper: {
-    justifyContent: "space-between",
-  },
-  card: {
-    backgroundColor: theme.colors.surface,
-    padding: theme.spacing.lg,
-    borderRadius: theme.radius.lg,
-    marginBottom: theme.spacing.md,
-    alignItems: "center",
-    ...theme.shadow,
-  },
-  cardHeader: {
-    position: "relative",
-    marginBottom: theme.spacing.md,
-  },
-  avatar: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-  },
-  avatarPlaceholder: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    fontSize: theme.fontSize.xxl,
-    fontWeight: "700",
-    color: "#fff",
-  },
-  statusIndicator: {
-    position: "absolute",
-    bottom: 2,
-    right: 2,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: theme.colors.secondary,
-    borderWidth: 2,
-    borderColor: theme.colors.surface,
-  },
-  doctorName: {
-    fontSize: theme.fontSize.lg,
-    fontWeight: "700",
-    textAlign: "center",
-    color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.xs,
-    marginTop: 2,
-  },
-  infoText: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.textSecondary,
-    textAlign: "center",
-  },
-  buttonRow: {
-    flexDirection: "row",
-    width: "100%",
-    marginTop: theme.spacing.md,
-    gap: theme.spacing.sm,
-  },
-  detailsButton: {
-    flex: 1,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.radius.md,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: theme.colors.primary,
-  },
-  detailsButtonText: {
-    color: theme.colors.primary,
-    fontWeight: "600",
-    fontSize: theme.fontSize.sm,
-  },
-  bookButton: {
-    flex: 1,
-    borderRadius: theme.radius.md,
-    overflow: "hidden",
-  },
-  bookButtonGradient: {
-    paddingVertical: theme.spacing.sm,
-    alignItems: "center",
-  },
-  bookButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: theme.fontSize.sm,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: theme.spacing.xl,
-  },
-  emptyTitle: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: "700",
-    color: theme.colors.text,
-    marginTop: theme.spacing.md,
-    marginBottom: theme.spacing.xs,
-  },
-  emptyText: {
-    textAlign: "center",
-    fontSize: theme.fontSize.md,
-    color: theme.colors.textSecondary,
-  },
-});

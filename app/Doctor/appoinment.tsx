@@ -147,7 +147,7 @@ export default function AppointmentDetails() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = {
   container: { padding: 20, flex: 1, backgroundColor: "#9adbc2ff" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
@@ -179,4 +179,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 16,
   },
-});
+};

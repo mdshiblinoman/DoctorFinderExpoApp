@@ -218,7 +218,7 @@ export default function BookingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = {
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -333,4 +333,4 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#fff",
   },
-});
+};

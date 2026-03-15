@@ -395,7 +395,7 @@ export default function AIChatScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const styles = {
     container: {
         flex: 1,
         backgroundColor: theme.colors.background,
@@ -624,4 +624,4 @@ const styles = StyleSheet.create({
         color: theme.colors.textSecondary,
         textAlign: "center",
     },
-});
+};

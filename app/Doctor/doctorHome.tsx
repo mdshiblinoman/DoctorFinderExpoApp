@@ -180,7 +180,7 @@ export default function DoctorHome() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = {
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -329,4 +329,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: theme.colors.error,
   },
-});
+};

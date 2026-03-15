@@ -366,7 +366,7 @@ export default function BookingList() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = {
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -608,4 +608,4 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.sm,
     fontWeight: "600",
   },
-});
+};

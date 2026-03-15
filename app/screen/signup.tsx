@@ -647,7 +647,7 @@ export default function SignupScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = {
   keyboardView: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -921,4 +921,4 @@ const styles = StyleSheet.create({
   resendButtonDisabled: {
     color: theme.colors.textLight,
   },
-});
+};
