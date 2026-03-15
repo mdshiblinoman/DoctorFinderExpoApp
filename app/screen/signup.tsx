@@ -920,4 +920,4 @@ const styles = {
   resendButtonDisabled: {
     color: theme.colors.textLight,
   },
-};
+} as const;

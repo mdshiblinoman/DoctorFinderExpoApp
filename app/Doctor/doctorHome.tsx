@@ -328,4 +328,4 @@ const styles = {
     fontWeight: "600",
     color: theme.colors.error,
   },
-};
+} as const;

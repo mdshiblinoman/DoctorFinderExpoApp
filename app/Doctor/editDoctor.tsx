@@ -353,4 +353,4 @@ const styles = {
     fontWeight: "700",
     fontSize: theme.fontSize.lg,
   },
-};
+} as const;

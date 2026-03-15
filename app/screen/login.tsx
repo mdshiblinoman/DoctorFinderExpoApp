@@ -323,4 +323,4 @@ const styles = {
     color: theme.colors.primary,
     fontWeight: '700',
   },
-};
+} as const;

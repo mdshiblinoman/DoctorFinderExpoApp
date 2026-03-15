@@ -13,7 +13,6 @@ import {
     Platform,
     ScrollView,
     StatusBar,
-    StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
@@ -624,4 +623,4 @@ const styles = {
         color: theme.colors.textSecondary,
         textAlign: "center",
     },
-};
+} as const;

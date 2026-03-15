@@ -11,7 +11,6 @@ import {
   Image,
   Platform,
   StatusBar,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -427,4 +426,4 @@ const styles = {
     borderWidth: 2,
     borderColor: theme.colors.surface,
   },
-};
+} as const;

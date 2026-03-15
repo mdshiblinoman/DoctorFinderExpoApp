@@ -607,4 +607,4 @@ const styles = {
     fontSize: theme.fontSize.sm,
     fontWeight: "600",
   },
-};
+} as const;

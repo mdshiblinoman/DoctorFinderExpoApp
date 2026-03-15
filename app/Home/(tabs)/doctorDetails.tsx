@@ -308,4 +308,4 @@ const styles = {
     fontWeight: "700",
     color: "#fff",
   },
-};
+} as const;
