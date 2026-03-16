@@ -1,4 +1,5 @@
 node_modules
+.expo
 
 # Environment variables (contains sensitive API keys)
 .env
